@@ -6,6 +6,7 @@ import { Footer } from "./footer";
 import { SettingsSection } from "./settingsSection";
 import { ShortcutSection } from "./shortcutSection";
 import { AuthSection } from "./authSection";
+import { DiagnosticsPanel } from "./DiagnosticsPanel";
 
 interface SidebarProps {
     config: Config;
@@ -26,6 +27,8 @@ const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, visible }) => {
             <div className="flex-1 overflow-y-auto px-8 py-4 min-h-0 scrollbar">
                 <AuthSection />
                 <SettingsSection config={config} setConfig={setConfig} />
+                <hr className="mx-8 my-4 border-gray-700" />
+                <DiagnosticsPanel />
                 <hr className="mx-8 my-4 border-gray-700" />
                 <ShortcutSection />
             </div>

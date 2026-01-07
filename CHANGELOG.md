@@ -2,7 +2,79 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## 🎉 1.4.0 (2025-09-10) - RESOLUTION OVERRIDE BREAKTHROUGH
+## 1.5.0 (2026-01-07) - SYSTEM DIAGNOSTICS
+
+### New Features
+
+* **System Diagnostics Module**: Added comprehensive codec and hardware acceleration diagnostics system
+* **Diagnostics Panel UI**: New tabbed interface in the sidebar for viewing system capabilities
+  - Summary tab with quick codec support overview
+  - Codecs tab with detailed AV1, HEVC, H.264, VP9 support status
+  - GPU tab showing hardware acceleration status and features
+  - Platform tab with system information and requirements
+* **Codec Detection**: WebCodecs API integration for accurate codec capability detection
+* **GPU Information**: Electron getGPUInfo() integration for detailed GPU analysis
+* **Platform Checks**: Platform-specific detection for VAAPI (Linux), HEVC Extensions (Windows), VideoToolbox (macOS)
+* **Hardware Acceleration Status**: Visual indicators for hardware vs software decoder status
+* **Codec Testing**: Run comprehensive codec tests to verify functionality
+* **Diagnostics IPC API**: New IPC handlers for diagnostics functionality
+  - `get-diagnostics-report` - Full chrome://gpu style report
+  - `run-codec-tests` - Comprehensive codec testing
+  - `get-codec-capabilities` - Codec support detection
+  - `get-gpu-info` - GPU information
+  - `get-platform-info` - Platform specifics
+  - `get-diagnostics-summary` - Quick overview
+  - `log-diagnostics` - Console debugging
+
+### Documentation
+
+* **Platform Requirements Guide**: Comprehensive documentation for codec setup across platforms
+  - Linux VAAPI installation instructions for Intel, AMD, and NVIDIA GPUs
+  - Windows HEVC Extensions installation guide
+  - macOS VideoToolbox requirements
+  - GPU codec support matrix for all major GPU vendors
+* **Custom Electron Build Plan**: Detailed technical research document
+  - Analysis of Electron codec architecture
+  - Implementation options for enhanced codec support
+  - Build configuration and CI/CD integration planning
+  - Phase-based implementation roadmap
+
+### Technical Improvements
+
+* **New Diagnostics Module** (`src/electron/diagnostics/`)
+  - `codec-detection.ts` - WebCodecs API codec detection
+  - `gpu-info.ts` - GPU information gathering
+  - `platform-checks.ts` - Platform-specific feature detection
+  - `types.ts` - TypeScript type definitions
+  - `index.ts` - Module exports and report generation
+* **Enhanced Type Definitions**: Comprehensive TypeScript interfaces for diagnostics data
+* **Preload API Extension**: New `window.diagnostics` API for renderer access
+* **IPC Handler Registration**: Integrated diagnostics handlers into IPC system
+* **React Icons Integration**: Added new icons for diagnostics UI (FaCircleCheck, FaCircleXmark, FaTriangleExclamation, FaMicrochip, FaDisplay, FaVideo)
+
+### Files Added
+
+* `src/electron/diagnostics/index.ts` - Main diagnostics module
+* `src/electron/diagnostics/codec-detection.ts` - Codec detection implementation
+* `src/electron/diagnostics/gpu-info.ts` - GPU information gathering
+* `src/electron/diagnostics/platform-checks.ts` - Platform-specific checks
+* `src/electron/diagnostics/types.ts` - TypeScript type definitions
+* `src/electron/ipc/diagnostics.ts` - Diagnostics IPC handlers
+* `src/overlay/components/DiagnosticsPanel.tsx` - React diagnostics UI component
+* `docs/PLATFORM-REQUIREMENTS.md` - Platform codec requirements documentation
+* `docs/CUSTOM-ELECTRON-BUILD-PLAN.md` - Custom Electron build research
+
+### Files Modified
+
+* `src/electron/ipc/index.ts` - Added diagnostics handler registration
+* `src/electron/preload.ts` - Added diagnostics API exposure
+* `src/overlay/components/sidebar.tsx` - Integrated diagnostics panel
+* `src/overlay/global.d.ts` - Added diagnostics type definitions
+* `src/types/react-icons.d.ts` - Added new icon type declarations
+
+---
+
+## 1.4.0 (2025-09-10) - RESOLUTION OVERRIDE BREAKTHROUGH
 
 ### 🚀 Major Features
 

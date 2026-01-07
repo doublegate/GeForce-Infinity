@@ -80,3 +80,21 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ) => ipcRenderer.on("update-downloaded", callback),
     downloadUpdate: () => ipcRenderer.invoke("download-update"),
 });
+
+// Diagnostics API for codec and GPU information
+contextBridge.exposeInMainWorld("diagnostics", {
+    // Get full diagnostics report (chrome://gpu style)
+    getDiagnosticsReport: () => ipcRenderer.invoke("get-diagnostics-report"),
+    // Run comprehensive codec tests
+    runCodecTests: () => ipcRenderer.invoke("run-codec-tests"),
+    // Get codec capabilities only
+    getCodecCapabilities: () => ipcRenderer.invoke("get-codec-capabilities"),
+    // Get GPU information only
+    getGPUInfo: () => ipcRenderer.invoke("get-gpu-info"),
+    // Get platform information only
+    getPlatformInfo: () => ipcRenderer.invoke("get-platform-info"),
+    // Get quick summary for display
+    getDiagnosticsSummary: () => ipcRenderer.invoke("get-diagnostics-summary"),
+    // Log diagnostics to console (for debugging)
+    logDiagnostics: () => ipcRenderer.invoke("log-diagnostics"),
+});

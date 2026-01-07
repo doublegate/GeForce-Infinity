@@ -14,6 +14,12 @@ declare module "react-icons/fa" {
 declare module "react-icons/fa6" {
   import { IconType } from "react-icons";
   export const FaCircleUser: IconType;
+  export const FaCircleCheck: IconType;
+  export const FaCircleXmark: IconType;
+  export const FaTriangleExclamation: IconType;
+  export const FaMicrochip: IconType;
+  export const FaDisplay: IconType;
+  export const FaVideo: IconType;
 }
 
 declare module "react-icons" {

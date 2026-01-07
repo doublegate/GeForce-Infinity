@@ -15,8 +15,9 @@
   <img src="src/assets/resources/Screenshot4.png" width="49%">
 </p>
 
-## 🚀 **Features**
+## **Features**
 
+- **System Diagnostics** - Comprehensive codec and GPU diagnostics panel to verify hardware acceleration support
 - **Up to 120 FPS support (GFN ultimate required)**
 - **4K/5K resolution support** - Full support for 3840x2160 (4K) and 5120x2880 (5K) resolutions
 - **Ultrawide monitor support** - Native 3440x1440 (21:9 aspect ratio) ultrawide gaming
@@ -91,7 +92,29 @@ Press `Ctrl+I` to open sidebar and configure your preferred settings:
 
 **IMPORTANT**: Do **NOT** use native GeForce NOW settings for resolution and FPS. GeForce Infinity overrides these values. The native GeForce NOW interface will still show 1080p max resolution and 60 FPS, but GeForce Infinity applies your custom settings.
 
-## 🔧 **Technical Architecture**
+## **System Diagnostics**
+
+GeForce Infinity v1.5.0 includes a comprehensive System Diagnostics panel to help verify your system's codec and hardware acceleration capabilities:
+
+1. Press `Ctrl+I` to open the sidebar
+2. Expand the "System Diagnostics" section
+3. Use the tabbed interface to explore:
+   - **Summary**: Quick overview of codec support and GPU information
+   - **Codecs**: Detailed AV1, HEVC, H.264, VP9 support with hardware/software indicators
+   - **GPU**: Hardware acceleration status, driver information, and WebGL details
+   - **Platform**: System information, Electron/Chromium versions, and platform-specific features
+
+### Diagnostics Features
+
+- **Codec Detection**: Real-time detection of codec capabilities using WebCodecs API
+- **Hardware Acceleration Status**: Visual indicators showing hardware vs software decoding
+- **Platform Checks**: Automatic detection of VAAPI (Linux), HEVC Extensions (Windows), VideoToolbox (macOS)
+- **Codec Testing**: Run comprehensive tests to verify codec functionality
+- **Recommendations**: Platform-specific setup recommendations
+
+For detailed platform requirements and setup instructions, see [Platform Requirements](docs/PLATFORM-REQUIREMENTS.md).
+
+## **Technical Architecture**
 
 GeForce Infinity is built with modern web technologies and follows best practices for cross-platform development:
 
@@ -101,17 +124,28 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **React**: Component-based UI for the overlay interface
 - **Build System**: Modern build pipeline with esbuild, TypeScript compiler, and Tailwind CSS
 
-### **Major Breakthrough (v1.4.0) - Updated September 10, 2025**
+### **Latest Release (v1.5.0) - January 2026**
 
-🎉 **RESOLUTION OVERRIDE NOW WORKING** - The core functionality is finally here!
+**SYSTEM DIAGNOSTICS** - Comprehensive codec and hardware verification
 
-- **🔧 Root Cause Resolution**: Identified and solved the iframe isolation issue preventing POST request interception
-- **📡 Iframe Injection System**: Implemented comprehensive webFrameMain API integration for complete frame coverage
-- **🎯 Dual-Layer Interception**: Combined webRequest API with iframe-level fetch/XHR patching for 100% coverage
-- **✅ Working Custom Resolutions**: Users can now successfully stream at 3440x1440, 4K, 120fps, and AV1 codec
-- **🚀 Complete Functionality**: Resolution override system now works as originally designed
-- **⚡ Enhanced Build System**: Fixed TypeScript compilation errors and npm configuration warnings
-- **🛠️ Technical Excellence**: Systematic debugging led to breakthrough iframe injection implementation
+- **Diagnostics Module**: Complete system diagnostics for codec and GPU capability detection
+- **Visual Diagnostics Panel**: Tabbed interface showing codec support, GPU info, and platform details
+- **WebCodecs Integration**: Accurate codec capability detection using modern browser APIs
+- **Platform-Specific Detection**: VAAPI (Linux), HEVC Extensions (Windows), VideoToolbox (macOS)
+- **Hardware Acceleration Status**: Visual indicators distinguishing hardware vs software decoders
+- **Documentation**: Comprehensive platform requirements guide and custom Electron build research
+
+### **Major Breakthrough (v1.4.0) - September 2025**
+
+**RESOLUTION OVERRIDE NOW WORKING** - The core functionality is finally here!
+
+- **Root Cause Resolution**: Identified and solved the iframe isolation issue preventing POST request interception
+- **Iframe Injection System**: Implemented comprehensive webFrameMain API integration for complete frame coverage
+- **Dual-Layer Interception**: Combined webRequest API with iframe-level fetch/XHR patching for 100% coverage
+- **Working Custom Resolutions**: Users can now successfully stream at 3440x1440, 4K, 120fps, and AV1 codec
+- **Complete Functionality**: Resolution override system now works as originally designed
+- **Enhanced Build System**: Fixed TypeScript compilation errors and npm configuration warnings
+- **Technical Excellence**: Systematic debugging led to breakthrough iframe injection implementation
 
 ### **Previous Improvements (v1.3.0)**
 
