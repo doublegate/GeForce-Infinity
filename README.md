@@ -70,18 +70,21 @@ Press `Ctrl+I` to open sidebar to access GeForce Infinity features.
 Press `Ctrl+I` to open sidebar and configure your preferred settings:
 
 ### **Resolution Settings**
+
 - **1440p**: 2560x1440 standard QHD
 - **Ultrawide**: 3440x1440 for 21:9 ultrawide monitors
 - **4K**: 3840x2160 for 4K displays
 - **5K**: 5120x2880 for high-end displays
 
 ### **Codec Selection**
+
 - **Auto (Recommended)**: Automatically selects best codec for your connection
 - **H.264 (Legacy)**: Wide compatibility, lower bandwidth
 - **H.265/HEVC**: Better compression, improved quality
 - **AV1 (4K Optimized)**: Latest codec, optimal for 4K streaming
 
 ### **Frame Rate Options**
+
 - **30 FPS**: Standard streaming
 - **60 FPS**: Smooth gaming (Performance plan or higher)
 - **120 FPS**: Ultra-smooth gaming (Ultimate plan required)
@@ -111,6 +114,7 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **🛠️ Technical Excellence**: Systematic debugging led to breakthrough iframe injection implementation
 
 ### **Previous Improvements (v1.3.0)**
+
 - **ES Module Compatibility**: Complete migration to ES modules with proper directory imports and extensions
 - **4K/AV1 Support**: Advanced codec selection with AV1 optimization for 4K streaming performance
 - **TypeScript Modernization**: Enhanced type safety with modern import/export syntax throughout codebase
@@ -139,6 +143,7 @@ To get started with GeForce Infinity, follow these steps:
     ```
 
 4. Run the application:
+
     ```bash
     yarn start
     ```
