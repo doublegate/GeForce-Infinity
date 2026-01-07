@@ -35,15 +35,21 @@ const App = () => {
             }).catch((error) => {
                 console.error("Failed to get current config:", error);
             });
-            
+
             window.electronAPI.onConfigLoaded((config: Config) => {
                 console.log("Config loaded in overlay:", config);
                 setConfig(config);
+            });
+
+            // Listen for global shortcut toggle from main process
+            window.electronAPI.onSidebarToggle(() => {
+                setVisible((v) => !v);
             });
         } else {
             console.warn("electronAPI not available, using default config");
         }
 
+        // Fallback keyboard handler for when overlay has focus
         const handler = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.key === "i") {
                 e.preventDefault();

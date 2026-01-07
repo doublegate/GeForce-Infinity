@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.1 (2026-01-07) - SIDEBAR TOGGLE FIX
+
+### Bug Fixes
+
+* **Sidebar Toggle**: Fixed Ctrl+I global shortcut not working to toggle the sidebar
+  - Re-enabled global shortcut registration in main process (`src/electron/main.ts`)
+  - Added IPC listener in overlay for sidebar toggle events (`src/overlay/index.tsx`)
+
+### Technical Details
+
+* **Global Shortcut**: The `Control+I` shortcut registration was commented out in the main process, preventing the shortcut from functioning
+* **IPC Communication**: The overlay was missing the `onSidebarToggle` IPC listener to respond to the main process shortcut events
+* **Dual Handler Architecture**: The overlay now has both:
+  - IPC listener for global shortcut events from main process
+  - Fallback keyboard handler for when overlay has focus
+
+### Files Modified
+
+* `src/electron/main.ts` - Re-enabled globalShortcut.register("Control+I") and IPC send
+* `src/overlay/index.tsx` - Added window.electronAPI.onSidebarToggle() listener
+
+---
+
 ## 1.5.0 (2026-01-07) - SYSTEM DIAGNOSTICS
 
 ### New Features

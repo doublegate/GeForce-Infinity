@@ -152,11 +152,11 @@ async function registerAppProtocols() {
 }
 
 function registerShortcuts(mainWindow: BrowserWindow) {
-    /*const success = globalShortcut.register("Control+I", () => {
+    const success = globalShortcut.register("Control+I", () => {
         mainWindow.webContents.send("sidebar-toggle");
     });
 
-    console.log("[Shortcuts] Sidebar shortcut registered?", success);*/
+    console.log("[Shortcuts] Sidebar shortcut registered?", success);
 
     if (!getConfig().informed) {
         mainWindow.once("ready-to-show", () => {
