@@ -13,33 +13,33 @@ If this is your first time contributing:
 
 2. **Clone** your fork:
 
-    ```bash
-    git clone https://github.com/YOUR_USERNAME/GeForce-Infinity.git
-    cd GeForce-Infinity
-    ```
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/GeForce-Infinity.git
+   cd GeForce-Infinity
+   ```
 
 3. Set the **original repository** as an upstream remote:
-    ```bash
-    git remote add upstream https://github.com/doublegate/GeForce-Infinity.git
-    ```
+   ```bash
+   git remote add upstream https://github.com/doublegate/GeForce-Infinity.git
+   ```
 
 ## 🌿 Branching & Workflow
 
 1. Always create a new branch for your work:
-    ```bash
-    git checkout -b your-feature-name
-    ```
+   ```bash
+   git checkout -b your-feature-name
+   ```
 2. If your branch is a small fix simply name it. But if it's a major bugfix or new feature you must name it as fix/your-feature-name or feature/your-feature-name
 
 3. Keep your fork up to date:
-    ```bash
-    git fetch upstream
-    git rebase upstream/main
-    ```
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
 4. Push your changes
-    ```
-    git push origin your-feature-name
-    ```
+   ```
+   git push origin your-feature-name
+   ```
 
 ## 🧹 Code Style & Formatting
 
@@ -80,8 +80,8 @@ If using VScode / VSCodium or any other fork, open Command Palette by `Ctrl+Shif
 4. **PR Review Requirements:**
 
 - Your PR must be approved by **both**:
-    - @doublegate
-    - @t0msk
+  - @doublegate
+  - @t0msk
 
 ## 💬 Questions or Help?
 

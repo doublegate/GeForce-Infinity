@@ -124,7 +124,18 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **React**: Component-based UI for the overlay interface
 - **Build System**: Modern build pipeline with esbuild, TypeScript compiler, and Tailwind CSS
 
-### **Latest Release (v1.5.1) - January 2026**
+### **Latest Release (v1.5.2) - January 2026**
+
+**TECHNICAL DEBT REMEDIATION** - Major code quality and security improvements
+
+- **Code Quality**: Fixed all 25 ESLint warnings (100% resolution)
+- **Security**: Reduced vulnerabilities from 10 to 2 (80% reduction)
+- **Testing**: Added Vitest framework with 8 passing tests
+- **Refactoring**: Extracted network interceptor (main.ts reduced 54%)
+- **CI/CD**: Added PR validation workflow for automated quality checks
+- **Formatting**: Applied Prettier to 63 files for consistent code style
+
+### **Previous Release (v1.5.1) - January 2026**
 
 **SIDEBAR TOGGLE FIX** - Restored Ctrl+I keyboard shortcut functionality
 
@@ -169,29 +180,44 @@ To get started with GeForce Infinity, follow these steps:
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/doublegate/GeForce-Infinity.git
-    ```
+   ```bash
+   git clone https://github.com/doublegate/GeForce-Infinity.git
+   ```
 
 2. Navigate to the project directory:
 
-    ```bash
-    cd GeForce-Infinity
-    ```
+   ```bash
+   cd GeForce-Infinity
+   ```
 
 3. Install dependencies:
 
-    ```bash
-    yarn install
-    ```
+   ```bash
+   yarn install
+   ```
 
 4. Run the application:
 
-    ```bash
-    yarn start
-    ```
+   ```bash
+   yarn start
+   ```
 
-## 💬 **Contributing**
+## **Testing**
+
+GeForce Infinity includes a comprehensive test suite using Vitest:
+
+```bash
+# Run tests once
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+
+# Run tests with coverage report
+yarn test:coverage
+```
+
+## **Contributing**
 
 We welcome contributions from the community! For the contribution guide please see: [Contributing](CONTRIBUTING.md)
 

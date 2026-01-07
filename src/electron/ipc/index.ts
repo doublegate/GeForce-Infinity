@@ -6,8 +6,8 @@ import { registerDiagnosticsHandlers } from "./diagnostics.js";
 import type { AppContext } from "../types/context.js";
 
 export function registerIpcHandlers(deps: AppContext) {
-    registerUpdaterHandlers(deps);
-    registerUserSettingsHandlers(deps);
-    registerSidebarIpcHandlers(deps.mainWindow);
-    registerDiagnosticsHandlers(deps);
+  registerUpdaterHandlers(deps);
+  registerUserSettingsHandlers(deps);
+  registerSidebarIpcHandlers(deps.mainWindow);
+  registerDiagnosticsHandlers(deps);
 }

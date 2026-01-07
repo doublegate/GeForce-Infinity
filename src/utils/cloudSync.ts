@@ -5,80 +5,80 @@ import type { Config } from "../shared/types";
 const db = getFirestore();
 
 export async function syncFromCloud() {
-    const user = auth.currentUser;
-    if (!user) {
-        console.warn("No authenticated user to sync from.");
-        return;
+  const user = auth.currentUser;
+  if (!user) {
+    console.warn("No authenticated user to sync from.");
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "users", user.uid);
+    const snapshot = await getDoc(docRef);
+
+    if (!snapshot.exists()) {
+      console.warn("No cloud config found.");
+      return;
     }
 
-    try {
-        const docRef = doc(db, "users", user.uid);
-        const snapshot = await getDoc(docRef);
+    const data = snapshot.data();
 
-        if (!snapshot.exists()) {
-            console.warn("No cloud config found.");
-            return;
-        }
+    // Map to local config
+    const configUpdate = {
+      rpcEnabled: data.gfirpc ?? true,
+      userAgent: data.gfiuseragent ?? "",
+      accentColor: data.gfiaccent ?? "",
+      notify: data.gfinotificaitons ?? true,
+      inactivityNotification: data.gfiinactivitynotification ?? false,
+      autofocus: data.gfiautofocus ?? false,
+      automute: data.gfiautomute ?? false,
+      informed: data.gfinformed ?? false,
+      monitorWidth: data.gfimonwidth ?? 2560,
+      monitorHeight: data.gfimonheight ?? 1440,
+      framesPerSecond: data.gfifps ?? 60,
+      codecPreference: data.gficodec ?? "auto",
+    };
 
-        const data = snapshot.data();
+    // Save to disk via exposed IPC
+    window.electronAPI.saveConfig(configUpdate);
 
-        // Map to local config
-        const configUpdate = {
-            rpcEnabled: data.gfirpc ?? true,
-            userAgent: data.gfiuseragent ?? "",
-            accentColor: data.gfiaccent ?? "",
-            notify: data.gfinotificaitons ?? true,
-            inactivityNotification: data.gfiinactivitynotification ?? false,
-            autofocus: data.gfiautofocus ?? false,
-            automute: data.gfiautomute ?? false,
-            informed: data.gfinformed ?? false,
-            monitorWidth: data.gfimonwidth ?? 2560,
-            monitorHeight: data.gfimonheight ?? 1440,
-            framesPerSecond: data.gfifps ?? 60,
-            codecPreference: data.gficodec ?? "auto"
-        };
-
-        // Save to disk via exposed IPC
-        window.electronAPI.saveConfig(configUpdate);
-
-        console.log("✅ Synced config from cloud.");
-    } catch (err) {
-        console.error("❌ Failed to sync from cloud:", err);
-    }
+    console.log("✅ Synced config from cloud.");
+  } catch (err) {
+    console.error("❌ Failed to sync from cloud:", err);
+  }
 }
 
 export async function syncToCloud(config: Config) {
-    const user = auth.currentUser;
-    if (!user) {
-        console.warn("No authenticated user to sync with.");
-        return;
-    }
+  const user = auth.currentUser;
+  if (!user) {
+    console.warn("No authenticated user to sync with.");
+    return;
+  }
 
-    try {
-        const docRef = doc(db, "users", user.uid);
+  try {
+    const docRef = doc(db, "users", user.uid);
 
-        const userData = {
-            username: user.displayName || user.email || "Unknown",
-            gfirpc: config.rpcEnabled,
-            gfiuseragent: config.userAgent,
-            gfitheme: "", // TODO: theme system later
-            gfiaccent: config.accentColor,
-            gfinotificaitons: config.notify,
-            gfiinactivitynotification: config.inactivityNotification,
-            gfiautofocus: config.autofocus,
-            gfiautomute: config.automute,
-            gfinformed: config.informed,
-            patreonSub: false,
-            gfimonwidth: config.monitorWidth,
-            gfimonheight: config.monitorHeight,
-            gfifps: config.framesPerSecond,
-            gficodec: config.codecPreference
-        };
+    const userData = {
+      username: user.displayName || user.email || "Unknown",
+      gfirpc: config.rpcEnabled,
+      gfiuseragent: config.userAgent,
+      gfitheme: "", // TODO: theme system later
+      gfiaccent: config.accentColor,
+      gfinotificaitons: config.notify,
+      gfiinactivitynotification: config.inactivityNotification,
+      gfiautofocus: config.autofocus,
+      gfiautomute: config.automute,
+      gfinformed: config.informed,
+      patreonSub: false,
+      gfimonwidth: config.monitorWidth,
+      gfimonheight: config.monitorHeight,
+      gfifps: config.framesPerSecond,
+      gficodec: config.codecPreference,
+    };
 
-        await setDoc(docRef, userData, { merge: true });
+    await setDoc(docRef, userData, { merge: true });
 
-        console.log("Cloud sync complete ✅");
-    } catch (err) {
-        console.error("Failed to sync to cloud:", err);
-    }
+    console.log("Cloud sync complete ✅");
+  } catch (err) {
+    console.error("Failed to sync to cloud:", err);
+  }
 }

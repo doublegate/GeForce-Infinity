@@ -24,7 +24,7 @@ declare module "react-icons/fa6" {
 
 declare module "react-icons" {
   import * as React from "react";
-  
+
   export interface IconBaseProps extends React.SVGAttributes<SVGElement> {
     children?: React.ReactNode;
     size?: string | number;

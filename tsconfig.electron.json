@@ -1,17 +1,22 @@
 {
-    "compilerOptions": {
-        "outDir": "dist",
-        "rootDir": "src",
-        "module": "ESNext",
-        "target": "ESNext", 
-        "moduleResolution": "bundler",
-        "esModuleInterop": true,
-        "strict": true,
-        "jsx": "react-jsx",
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true
-    },
-    "exclude": ["node_modules"],
-    "include": ["src/electron/**/*", "src/overlay/global.d.ts", "postcss.config.js", "tailwind.config.js"],
-    "assets": ["src/assets/**/*"]
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": ["node_modules"],
+  "include": [
+    "src/electron/**/*",
+    "src/overlay/global.d.ts",
+    "postcss.config.js",
+    "tailwind.config.js"
+  ],
+  "assets": ["src/assets/**/*"]
 }

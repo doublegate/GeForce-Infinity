@@ -62,8 +62,13 @@ app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 app.commandLine.appendSwitch("enable-gpu-memory-buffer-video-frames");
 app.commandLine.appendSwitch("enable-accelerated-video-decode");
 app.commandLine.appendSwitch("enable-hardware-overlays");
-app.commandLine.appendSwitch("disable-features", "UseChromeOSDirectVideoDecoder");
-app.commandLine.appendSwitch("enable-features", [
+app.commandLine.appendSwitch(
+  "disable-features",
+  "UseChromeOSDirectVideoDecoder",
+);
+app.commandLine.appendSwitch(
+  "enable-features",
+  [
     "WaylandWindowDecorations",
     "AcceleratedVideoDecodeLinuxGL",
     "VaapiVideoDecoder",
@@ -73,18 +78,19 @@ app.commandLine.appendSwitch("enable-features", [
     "VaapiAV1Decoder",
     "GlobalVaapiLock",
     "PlatformHEVCDecoderSupport",
-].join(","));
+  ].join(","),
+);
 ```
 
 ### What's Needed vs What's Available
 
-| Codec | GeForce NOW Usage | Electron 37 Status | Action Needed |
-|-------|-------------------|-------------------|---------------|
-| H.264/AVC | 1200p and below | Included | None |
-| HEVC/H.265 | 1440p+ | HW decode only | SW decode requires patches |
-| AV1 | Ultimate tier, 4K | Included (HW+SW) | Verify HW acceleration |
-| VP9 | Fallback | Included | None |
-| Opus | Audio | Included | None |
+| Codec      | GeForce NOW Usage | Electron 37 Status | Action Needed              |
+| ---------- | ----------------- | ------------------ | -------------------------- |
+| H.264/AVC  | 1200p and below   | Included           | None                       |
+| HEVC/H.265 | 1440p+            | HW decode only     | SW decode requires patches |
+| AV1        | Ultimate tier, 4K | Included (HW+SW)   | Verify HW acceleration     |
+| VP9        | Fallback          | Included           | None                       |
+| Opus       | Audio             | Included           | None                       |
 
 ---
 
@@ -126,14 +132,15 @@ Video Playback Pipeline
 
 **Hardware AV1 Decode Support:**
 
-| Vendor | GPU Generation | AV1 Decode | AV1 Encode |
-|--------|---------------|------------|------------|
-| Intel | Arc A-series, 11th Gen+ iGPU | Yes | Yes (Arc only) |
-| NVIDIA | RTX 30 series+ | Yes | Yes (RTX 40 only) |
-| AMD | RX 6000 series+ | Yes | Yes (RX 7000 only) |
-| Apple | M1 and newer | Yes | No |
+| Vendor | GPU Generation               | AV1 Decode | AV1 Encode         |
+| ------ | ---------------------------- | ---------- | ------------------ |
+| Intel  | Arc A-series, 11th Gen+ iGPU | Yes        | Yes (Arc only)     |
+| NVIDIA | RTX 30 series+               | Yes        | Yes (RTX 40 only)  |
+| AMD    | RX 6000 series+              | Yes        | Yes (RX 7000 only) |
+| Apple  | M1 and newer                 | Yes        | No                 |
 
 **AV1 is NOT the issue** - it's already included by default. The limiting factor is typically:
+
 1. GeForce NOW account tier (Ultimate required for AV1)
 2. Client device hardware (must support AV1 decode)
 3. GeForce NOW server-side encoding decisions
@@ -143,16 +150,19 @@ Video Playback Pipeline
 HEVC has a more complex situation due to patent licensing:
 
 **Hardware Decoding (Available in Electron 22+):**
+
 - Windows: Requires HEVC Video Extensions from Microsoft Store (or free from manufacturer)
 - Linux: VAAPI only (Intel, AMD with proper drivers)
 - macOS: VideoToolbox (Big Sur 11.0+)
 
 **Software Decoding (NOT available by default):**
+
 - Requires custom FFmpeg build with HEVC decoder patches
 - Legal gray area due to MPEG-LA licensing
 - Available via electron-chromium-codecs patches
 
 **HEVC Hardware Encoding (Available in Electron 33+):**
+
 - Windows and macOS only
 - Via WebCodecs, WebRTC, and MediaRecorder APIs
 
@@ -183,16 +193,19 @@ GeForce NOW uses a WebRTC-based streaming protocol with the following characteri
 Build Electron from source with modified FFmpeg configuration.
 
 **When to Use:**
+
 - Need software HEVC decoding (rare for streaming)
 - Need AC3/E-AC3 audio codec support
 - Want complete control over media stack
 
 **Pros:**
+
 - Full control over all codecs and configurations
 - Can enable any combination of codecs
 - Can optimize for specific use cases
 
 **Cons:**
+
 - Extremely complex build process (4-8 hours build time)
 - Requires 50-100GB disk space
 - Significant maintenance burden (must rebuild for each Electron update)
@@ -201,11 +214,11 @@ Build Electron from source with modified FFmpeg configuration.
 
 **Build Requirements:**
 
-| Platform | Tools Required | Disk Space | Build Time |
-|----------|---------------|------------|------------|
-| Linux | depot_tools, clang, ninja, python3 | 100GB+ | 4-8 hours |
-| Windows | VS 2022, Windows SDK, depot_tools | 100GB+ | 6-10 hours |
-| macOS | Xcode 14+, depot_tools | 80GB+ | 4-8 hours |
+| Platform | Tools Required                     | Disk Space | Build Time |
+| -------- | ---------------------------------- | ---------- | ---------- |
+| Linux    | depot_tools, clang, ninja, python3 | 100GB+     | 4-8 hours  |
+| Windows  | VS 2022, Windows SDK, depot_tools  | 100GB+     | 6-10 hours |
+| macOS    | Xcode 14+, depot_tools             | 80GB+      | 4-8 hours  |
 
 **Build Configuration (GN args):**
 
@@ -234,17 +247,20 @@ enable_platform_hevc = true
 Optimize the existing Electron installation with comprehensive hardware acceleration flags.
 
 **When to Use:**
+
 - AV1 and HEVC hardware decoding are sufficient
 - Want to avoid custom build complexity
 - Using modern GPUs with codec support
 
 **Pros:**
+
 - No custom builds required
 - Works with standard Electron releases
 - Easy to maintain and update
 - Immediate implementation
 
 **Cons:**
+
 - Limited to hardware-supported codecs
 - Software fallback may not be optimal
 - Platform-specific behavior differences
@@ -265,7 +281,9 @@ app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 app.commandLine.appendSwitch("enable-gpu-memory-buffer-video-frames");
 
 // Enhanced features for modern codecs
-app.commandLine.appendSwitch("enable-features", [
+app.commandLine.appendSwitch(
+  "enable-features",
+  [
     // AV1 Support
     "Av1Decoder",
     "VaapiAV1Decoder",
@@ -289,27 +307,31 @@ app.commandLine.appendSwitch("enable-features", [
     "WebRtcUseEchoCanceller3",
 
     // Platform-specific
-    "WaylandWindowDecorations",  // Linux Wayland
-].join(","));
+    "WaylandWindowDecorations", // Linux Wayland
+  ].join(","),
+);
 
 // Disable problematic features
-app.commandLine.appendSwitch("disable-features", [
+app.commandLine.appendSwitch(
+  "disable-features",
+  [
     "UseChromeOSDirectVideoDecoder",
-    "MediaFoundationD3D11VideoCapture",  // Can cause issues
-].join(","));
+    "MediaFoundationD3D11VideoCapture", // Can cause issues
+  ].join(","),
+);
 
 // Linux-specific VAAPI configuration
 if (process.platform === "linux") {
-    app.commandLine.appendSwitch("use-gl", "egl");
-    app.commandLine.appendSwitch("enable-features", "VaapiOnNvidiaGPUs");
-    // For NVIDIA proprietary drivers
-    // Requires: libva-nvidia-driver package
+  app.commandLine.appendSwitch("use-gl", "egl");
+  app.commandLine.appendSwitch("enable-features", "VaapiOnNvidiaGPUs");
+  // For NVIDIA proprietary drivers
+  // Requires: libva-nvidia-driver package
 }
 
 // Windows-specific D3D11 configuration
 if (process.platform === "win32") {
-    app.commandLine.appendSwitch("enable-d3d11-video-decoder");
-    app.commandLine.appendSwitch("enable-dawn-features", "allow_unsafe_apis");
+  app.commandLine.appendSwitch("enable-d3d11-video-decoder");
+  app.commandLine.appendSwitch("enable-dawn-features", "allow_unsafe_apis");
 }
 ```
 
@@ -322,16 +344,19 @@ if (process.platform === "win32") {
 Replace the bundled FFmpeg library with a custom-compiled version.
 
 **When to Use:**
+
 - Need specific codec support without full Electron rebuild
 - Want to add HEVC software decoding as fallback
 - Have existing FFmpeg build infrastructure
 
 **Pros:**
+
 - Easier than full Electron build
 - Can be automated in build pipeline
 - Only need to maintain FFmpeg, not entire Chromium
 
 **Cons:**
+
 - May cause compatibility issues
 - Must match Electron's FFmpeg ABI
 - Platform-specific library locations
@@ -408,16 +433,19 @@ make -j$(nproc)
 Use pre-built Electron distributions with extended codec support.
 
 **Potential Sources:**
+
 - electron-chromium-codecs patches (community maintained)
 - Electron releases with custom FFmpeg (rare)
 - Flatpak/Snap packages with codec support
 
 **Pros:**
+
 - No build infrastructure required
 - Community maintenance
 - Quick to implement
 
 **Cons:**
+
 - Dependency on external maintainers
 - May lag behind official Electron releases
 - Security update delays
@@ -459,6 +487,7 @@ If users report issues with specific codec scenarios:
 ### Fallback Strategy: Option 1 (Custom Build)
 
 Only pursue if:
+
 - Critical feature requires it
 - Resources available for ongoing maintenance
 - Legal counsel approves codec licensing
@@ -482,7 +511,7 @@ Only pursue if:
 ```typescript
 // Add to main.ts or new diagnostics module
 async function getCodecCapabilities(webContents: WebContents): Promise<object> {
-    return webContents.executeJavaScript(`
+  return webContents.executeJavaScript(`
         (async () => {
             const codecs = {
                 av1: {
@@ -525,13 +554,13 @@ async function getCodecCapabilities(webContents: WebContents): Promise<object> {
 
 **Platform Configuration Matrix:**
 
-| Platform | Configuration |
-|----------|---------------|
-| Linux (Intel) | VAAPI with iHD driver |
-| Linux (AMD) | VAAPI with radeonsi driver |
+| Platform       | Configuration                                 |
+| -------------- | --------------------------------------------- |
+| Linux (Intel)  | VAAPI with iHD driver                         |
+| Linux (AMD)    | VAAPI with radeonsi driver                    |
 | Linux (NVIDIA) | VAAPI with nvidia-vaapi-driver (experimental) |
-| Windows | D3D11 Video Decoder (native) |
-| macOS | VideoToolbox (native) |
+| Windows        | D3D11 Video Decoder (native)                  |
+| macOS          | VideoToolbox (native)                         |
 
 ### Phase 3: FFmpeg Replacement Pipeline (Week 5-8, if needed)
 
@@ -560,11 +589,13 @@ async function getCodecCapabilities(webContents: WebContents): Promise<object> {
 ### Prerequisites
 
 **All Platforms:**
+
 - Node.js 20+ (LTS)
 - Python 3.9+
 - Git
 
 **Linux (Ubuntu 22.04+):**
+
 ```bash
 sudo apt-get install build-essential clang libdbus-1-dev libgtk-3-dev \
     libnotify-dev libasound2-dev libcap-dev libcups2-dev libxtst-dev \
@@ -580,6 +611,7 @@ export PATH="$PATH:$(pwd)/depot_tools"
 ```
 
 **Windows:**
+
 - Visual Studio 2022 with C++ workload
 - Windows 10/11 SDK
 - Debugging Tools for Windows
@@ -590,6 +622,7 @@ export PATH="$PATH:$(pwd)/depot_tools"
 ```
 
 **macOS:**
+
 - Xcode 14+ with Command Line Tools
 - macOS 12.0+ (Monterey)
 
@@ -665,9 +698,9 @@ on:
   workflow_dispatch:
     inputs:
       electron_version:
-        description: 'Electron version to build'
+        description: "Electron version to build"
         required: true
-        default: 'v37.2.0'
+        default: "v37.2.0"
 
 jobs:
   build:
@@ -711,64 +744,73 @@ jobs:
 ### Codec Support Verification
 
 **Browser-based Test:**
+
 ```javascript
 // Test in DevTools console or inject via preload
 async function testCodecSupport() {
-    const tests = [
-        { name: 'AV1 (4K)', codec: 'av01.0.08M.08', width: 3840, height: 2160 },
-        { name: 'AV1 (1080p)', codec: 'av01.0.04M.08', width: 1920, height: 1080 },
-        { name: 'HEVC (4K)', codec: 'hvc1.1.6.L153.B0', width: 3840, height: 2160 },
-        { name: 'HEVC (1080p)', codec: 'hvc1.1.6.L93.B0', width: 1920, height: 1080 },
-        { name: 'H.264 (1080p)', codec: 'avc1.640028', width: 1920, height: 1080 },
-        { name: 'VP9 (4K)', codec: 'vp09.00.50.08', width: 3840, height: 2160 },
-    ];
+  const tests = [
+    { name: "AV1 (4K)", codec: "av01.0.08M.08", width: 3840, height: 2160 },
+    { name: "AV1 (1080p)", codec: "av01.0.04M.08", width: 1920, height: 1080 },
+    { name: "HEVC (4K)", codec: "hvc1.1.6.L153.B0", width: 3840, height: 2160 },
+    {
+      name: "HEVC (1080p)",
+      codec: "hvc1.1.6.L93.B0",
+      width: 1920,
+      height: 1080,
+    },
+    { name: "H.264 (1080p)", codec: "avc1.640028", width: 1920, height: 1080 },
+    { name: "VP9 (4K)", codec: "vp09.00.50.08", width: 3840, height: 2160 },
+  ];
 
-    console.log('=== Codec Support Test ===');
-    for (const test of tests) {
-        try {
-            const result = await VideoDecoder.isConfigSupported({
-                codec: test.codec,
-                width: test.width,
-                height: test.height,
-            });
-            console.log(`${test.name}: ${result.supported ? 'SUPPORTED' : 'NOT SUPPORTED'}`);
-        } catch (e) {
-            console.log(`${test.name}: ERROR - ${e.message}`);
-        }
+  console.log("=== Codec Support Test ===");
+  for (const test of tests) {
+    try {
+      const result = await VideoDecoder.isConfigSupported({
+        codec: test.codec,
+        width: test.width,
+        height: test.height,
+      });
+      console.log(
+        `${test.name}: ${result.supported ? "SUPPORTED" : "NOT SUPPORTED"}`,
+      );
+    } catch (e) {
+      console.log(`${test.name}: ERROR - ${e.message}`);
     }
+  }
 }
 
 testCodecSupport();
 ```
 
 **GPU Feature Check:**
+
 ```javascript
 // Access via chrome://gpu or programmatically
-const gpuInfo = await app.getGPUInfo('complete');
-console.log('GPU Info:', JSON.stringify(gpuInfo, null, 2));
+const gpuInfo = await app.getGPUInfo("complete");
+console.log("GPU Info:", JSON.stringify(gpuInfo, null, 2));
 ```
 
 ### Performance Benchmarks
 
-| Metric | Baseline | Target | Measurement Method |
-|--------|----------|--------|-------------------|
-| CPU Usage (4K AV1) | 40%+ | <20% | Task Manager / top |
-| GPU Decode Util | <50% | >80% | nvidia-smi / intel_gpu_top |
-| Frame Drop Rate | >1% | <0.1% | DevTools Media panel |
-| Decode Latency | >20ms | <10ms | WebRTC stats |
+| Metric             | Baseline | Target | Measurement Method         |
+| ------------------ | -------- | ------ | -------------------------- |
+| CPU Usage (4K AV1) | 40%+     | <20%   | Task Manager / top         |
+| GPU Decode Util    | <50%     | >80%   | nvidia-smi / intel_gpu_top |
+| Frame Drop Rate    | >1%      | <0.1%  | DevTools Media panel       |
+| Decode Latency     | >20ms    | <10ms  | WebRTC stats               |
 
 ### Platform Testing Matrix
 
-| Platform | GPU | Driver | AV1 HW | HEVC HW | Test Status |
-|----------|-----|--------|--------|---------|-------------|
-| Linux (X11) | Intel Arc | i915 | | | Pending |
-| Linux (Wayland) | Intel Arc | i915 | | | Pending |
-| Linux (X11) | AMD RX 6000 | radeonsi | | | Pending |
-| Linux (X11) | NVIDIA RTX 30 | nvidia | | | Pending |
-| Windows 11 | Intel Arc | Intel | | | Pending |
-| Windows 11 | NVIDIA RTX 40 | Game Ready | | | Pending |
-| Windows 11 | AMD RX 7000 | Adrenalin | | | Pending |
-| macOS 14 | Apple M3 | Native | | | Pending |
+| Platform        | GPU           | Driver     | AV1 HW | HEVC HW | Test Status |
+| --------------- | ------------- | ---------- | ------ | ------- | ----------- |
+| Linux (X11)     | Intel Arc     | i915       |        |         | Pending     |
+| Linux (Wayland) | Intel Arc     | i915       |        |         | Pending     |
+| Linux (X11)     | AMD RX 6000   | radeonsi   |        |         | Pending     |
+| Linux (X11)     | NVIDIA RTX 30 | nvidia     |        |         | Pending     |
+| Windows 11      | Intel Arc     | Intel      |        |         | Pending     |
+| Windows 11      | NVIDIA RTX 40 | Game Ready |        |         | Pending     |
+| Windows 11      | AMD RX 7000   | Adrenalin  |        |         | Pending     |
+| macOS 14        | Apple M3      | Native     |        |         | Pending     |
 
 ---
 
@@ -776,28 +818,28 @@ console.log('GPU Info:', JSON.stringify(gpuInfo, null, 2));
 
 ### Technical Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Custom build breaks on update | High | Medium | Automate builds, pin versions |
-| FFmpeg ABI incompatibility | Medium | High | Version lock, thorough testing |
-| Platform-specific failures | Medium | Medium | Comprehensive test matrix |
-| Hardware acceleration regression | Low | High | Feature flags, fallback paths |
+| Risk                             | Probability | Impact | Mitigation                     |
+| -------------------------------- | ----------- | ------ | ------------------------------ |
+| Custom build breaks on update    | High        | Medium | Automate builds, pin versions  |
+| FFmpeg ABI incompatibility       | Medium      | High   | Version lock, thorough testing |
+| Platform-specific failures       | Medium      | Medium | Comprehensive test matrix      |
+| Hardware acceleration regression | Low         | High   | Feature flags, fallback paths  |
 
 ### Legal Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| HEVC patent claims | Low | High | Use HW decode only, legal review |
-| FFmpeg licensing (GPL) | Medium | Medium | Document license compliance |
-| Distribution restrictions | Low | Medium | Clear licensing documentation |
+| Risk                      | Probability | Impact | Mitigation                       |
+| ------------------------- | ----------- | ------ | -------------------------------- |
+| HEVC patent claims        | Low         | High   | Use HW decode only, legal review |
+| FFmpeg licensing (GPL)    | Medium      | Medium | Document license compliance      |
+| Distribution restrictions | Low         | Medium | Clear licensing documentation    |
 
 ### Operational Risks
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Build infrastructure failure | Medium | Medium | Multiple CI providers |
-| Maintainer burnout | Medium | High | Document processes, bus factor |
-| Version lag (security) | Medium | High | Automate updates, alerts |
+| Risk                         | Probability | Impact | Mitigation                     |
+| ---------------------------- | ----------- | ------ | ------------------------------ |
+| Build infrastructure failure | Medium      | Medium | Multiple CI providers          |
+| Maintainer burnout           | Medium      | High   | Document processes, bus factor |
+| Version lag (security)       | Medium      | High   | Automate updates, alerts       |
 
 ---
 
@@ -918,6 +960,7 @@ The current implementation in `/home/parobek/Code/GeForce-Infinity/src/electron/
 4. **Resolution Override:** webFrameMain API for iframe injection working correctly
 
 The resolution override system successfully modifies GeForce NOW session requests. Any limitations with higher resolutions (3440x1440, 4K) are due to external factors:
+
 - GeForce NOW account tier (Ultimate required for AV1)
 - Game-specific limitations
 - Backend validation by NVIDIA

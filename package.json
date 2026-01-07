@@ -1,138 +1,141 @@
 {
-    "name": "geforce-infinity",
-    "version": "1.5.1",
-    "main": "dist/electron/main.js",
-    "scripts": {
-        "lint": "eslint .",
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "concurrently \"bun:dev:overlay\" \"bun:dev:electron\"",
-        "dev:overlay": "bun bun:dev",
-        "dev:electron": "tsc -w -p tsconfig.json",
-        "build": "bunx tsx scripts/build-overlay.ts && bunx tsc -p tsconfig.electron.json && bunx cpx \"src/assets/**/*\" dist/assets",
-        "build:css": "npx tailwindcss -i src/overlay/index.css -o dist/assets/tailwind.bundle.css --minify",
-        "start": "yarn build && bunx electron dist/electron/main.js",
-        "pack": "bunx electron-builder --dir",
-        "dist": "bunx electron-builder --win --linux",
-        "rebuild": "bunx electron-rebuild",
-        "release": "bunx standard-version"
-    },
-    "keywords": [],
-    "author": {
-        "name": "doublegate",
-        "email": "doublegate@users.noreply.github.com"
-    },
-    "license": "MIT",
-    "description": "Enhance your GeForce NOW application experience!",
-    "devDependencies": {
-        "@eslint/css": "^0.9.0",
-        "@eslint/js": "^9.30.1",
-        "@eslint/json": "^0.12.0",
-        "@eslint/markdown": "^6.6.0",
-        "@types/bun": "latest",
-        "@types/discord-rpc": "^4.0.9",
-        "@types/node": "^24.1.0",
-        "@types/react": "^19.1.8",
-        "@types/react-dom": "^19.1.6",
-        "@typescript-eslint/eslint-plugin": "^8.36.0",
-        "@typescript-eslint/parser": "^8.36.0",
-        "@vitejs/plugin-react": "^4.0.0",
-        "autoprefixer": "^10.4.21",
-        "concurrently": "^9.2.0",
-        "copyfiles": "^2.4.1",
-        "cpx": "^1.5.0",
-        "electron": "^37.2.0",
-        "electron-builder": "^25.1.8",
-        "electron-rebuild": "^3.2.9",
-        "eslint": "^9.30.1",
-        "eslint-config-prettier": "^10.1.5",
-        "eslint-plugin-react": "^7.37.5",
-        "globals": "^16.3.0",
-        "postcss": "^8.5.6",
-        "prettier": "^3.6.2",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "shx": "^0.4.0",
-        "standard-version": "^9.5.0",
-        "tailwindcss": "3.4.1",
-        "ts-node": "^10.9.2",
-        "tsx": "^4.20.5",
-        "typescript": "^5.8.3",
-        "typescript-eslint": "^8.36.0",
-        "vite": "^7.0.3"
-    },
-    "dependencies": {
-        "@t0msk/discord-rpc": "^4.0.2",
-        "caniuse-lite": "^1.0.30001727",
-        "electron-updater": "^6.6.2",
-        "firebase": "^12.0.0",
-        "node-abi": "^4.12.0",
-        "react-icons": "^5.5.0",
-        "yaml": "^2.3.4"
-    },
-    "build": {
-        "appId": "net.doublegate.geforceinfinity",
-        "productName": "GeForceInfinity",
-        "files": [
-            "node_modules/**/*",
-            "package.json",
-            "src/main.js",
-            "src/preload.js",
-            "src/assets/infinity-styles.css",
-            "src/assets/**",
-            "dist/**/*"
-        ],
-        "extraResources": [
-            {
-                "from": "src/assets",
-                "to": "assets",
-                "filter": [
-                    "**/*"
-                ]
-            }
-        ],
-        "directories": {
-            "output": "builds"
-        },
-        "win": {
-            "target": [
-                "nsis",
-                "zip"
-            ],
-            "artifactName": "${productName}-windows-${version}-${arch}.${ext}",
-            "icon": "src/assets/resources/infinitylogo.ico"
-        },
-        "linux": {
-            "target": [
-                "AppImage",
-                "deb",
-                "rpm",
-                "zip"
-            ],
-            "artifactName": "${productName}-linux-${version}-${arch}.${ext}",
-            "icon": "src/assets/resources/infinitylogo.png",
-            "maintainer": "doublegate <doublegate@users.noreply.github.com>",
-            "category": "Game",
-            "desktop": {
-                "entry": {
-                    "Name": "GeForce Infinity",
-                    "Comment": "Enhance your GeForce NOW application experience!",
-                    "GenericName": "GeForceInfinity",
-                    "Terminal": "false",
-                    "Type": "Application",
-                    "StartupNotify": "false",
-                    "Icon": "/opt/GeForceInfinity/resources/assets/resources/infinitylogo.png",
-                    "MimeType": "x-scheme-handler/geforceinfinity"
-                }
-            }
-        },
-        "publish": [
-            {
-                "provider": "github",
-                "owner": "doublegate",
-                "repo": "GeForce-Infinity"
-            }
+  "name": "geforce-infinity",
+  "version": "1.5.2",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "dev": "concurrently \"bun:dev:overlay\" \"bun:dev:electron\"",
+    "dev:overlay": "bun bun:dev",
+    "dev:electron": "tsc -w -p tsconfig.json",
+    "build": "bunx tsx scripts/build-overlay.ts && bunx tsc -p tsconfig.electron.json && bunx copyfiles -u 1 \"src/assets/**/*\" dist",
+    "build:css": "npx tailwindcss -i src/overlay/index.css -o dist/assets/tailwind.bundle.css --minify",
+    "start": "yarn build && bunx electron dist/electron/main.js",
+    "pack": "bunx electron-builder --dir",
+    "dist": "bunx electron-builder --win --linux",
+    "rebuild": "bunx electron-rebuild",
+    "release": "bunx standard-version"
+  },
+  "keywords": [],
+  "author": {
+    "name": "doublegate",
+    "email": "doublegate@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "description": "Enhance your GeForce NOW application experience!",
+  "devDependencies": {
+    "@eslint/css": "^0.9.0",
+    "@eslint/js": "^9.39.2",
+    "@eslint/json": "^0.14.0",
+    "@eslint/markdown": "^6.6.0",
+    "@types/bun": "latest",
+    "@types/discord-rpc": "^4.0.10",
+    "@types/node": "^24.10.4",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^4.0.16",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "copyfiles": "^2.4.1",
+    "electron": "^37.10.3",
+    "electron-builder": "^25.1.8",
+    "electron-rebuild": "^3.2.9",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.7.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "shx": "^0.4.0",
+    "standard-version": "^9.5.0",
+    "tailwindcss": "3.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "@t0msk/discord-rpc": "^4.0.2",
+    "caniuse-lite": "^1.0.30001762",
+    "electron-updater": "^6.7.3",
+    "firebase": "^12.7.0",
+    "node-abi": "^4.24.0",
+    "react-icons": "^5.5.0",
+    "yaml": "^2.8.2"
+  },
+  "build": {
+    "appId": "net.doublegate.geforceinfinity",
+    "productName": "GeForceInfinity",
+    "files": [
+      "node_modules/**/*",
+      "package.json",
+      "src/main.js",
+      "src/preload.js",
+      "src/assets/infinity-styles.css",
+      "src/assets/**",
+      "dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "src/assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
         ]
+      }
+    ],
+    "directories": {
+      "output": "builds"
     },
-    "private": true,
-    "type": "module"
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "artifactName": "${productName}-windows-${version}-${arch}.${ext}",
+      "icon": "src/assets/resources/infinitylogo.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm",
+        "zip"
+      ],
+      "artifactName": "${productName}-linux-${version}-${arch}.${ext}",
+      "icon": "src/assets/resources/infinitylogo.png",
+      "maintainer": "doublegate <doublegate@users.noreply.github.com>",
+      "category": "Game",
+      "desktop": {
+        "entry": {
+          "Name": "GeForce Infinity",
+          "Comment": "Enhance your GeForce NOW application experience!",
+          "GenericName": "GeForceInfinity",
+          "Terminal": "false",
+          "Type": "Application",
+          "StartupNotify": "false",
+          "Icon": "/opt/GeForceInfinity/resources/assets/resources/infinitylogo.png",
+          "MimeType": "x-scheme-handler/geforceinfinity"
+        }
+      }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "doublegate",
+        "repo": "GeForce-Infinity"
+      }
+    ]
+  },
+  "private": true,
+  "type": "module"
 }

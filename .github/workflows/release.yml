@@ -1,79 +1,79 @@
 name: Build & Release
 
 on:
-    push:
-        tags:
-            - "v*"
-    workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    release:
-        runs-on: ubuntu-24.04
-        permissions:
-            contents: write
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
 
-        strategy:
-            matrix:
-                os: [ubuntu-24.04]
+    strategy:
+      matrix:
+        os: [ubuntu-24.04]
 
-        steps:
-            - name: 🧾 Checkout repository
-              uses: actions/checkout@v4
+    steps:
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v4
 
-            - name: 🛠️ Setup Bun
-              uses: oven-sh/setup-bun@v1
+      - name: 🛠️ Setup Bun
+        uses: oven-sh/setup-bun@v1
 
-            - name: ⚙️ Set up Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "22"
+      - name: ⚙️ Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-            - name: 🔧 Install build dependencies
-              run: |
-                  sudo apt update
-                  sudo apt install -y build-essential python3 python3-dev
-                  npm install -g node-gyp node-gyp-build
+      - name: 🔧 Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential python3 python3-dev
+          npm install -g node-gyp node-gyp-build
 
-            - name: 🧰 Install dependencies
-              run: bun install
+      - name: 🧰 Install dependencies
+        run: bun install
 
-            - name: 🔧 Install app dependencies
-              run: bunx electron-builder install-app-deps
+      - name: 🔧 Install app dependencies
+        run: bunx electron-builder install-app-deps
 
-            - name: 🔧 Install system dependencies
-              run: |
-                  sudo apt update
-                  sudo apt install -y libarchive-tools libgtk-3-dev libnss3 libxss1 libasound2-plugins xvfb fakeroot dpkg rpm fakeroot
+      - name: 🔧 Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libarchive-tools libgtk-3-dev libnss3 libxss1 libasound2-plugins xvfb fakeroot dpkg rpm fakeroot
 
-            - name: Install Wine
-              run: |
-                  sudo dpkg --add-architecture i386
-                  sudo apt update
-                  sudo apt install -y wine32 wine64
+      - name: Install Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y wine32 wine64
 
-            - name: 🏗️ Build application
-              run: bun run build
+      - name: 🏗️ Build application
+        run: bun run build
 
-            - name: 🔨 Build & package with Electron Builder
-              run: bun run dist
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🔨 Build & package with Electron Builder
+        run: bun run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: 📦 Upload release assets to GitHub
-              uses: softprops/action-gh-release@v2
-              with:
-                  name: "Release v${{ github.ref_name }}"
-                  tag_name: ${{ github.ref_name }}
-                  draft: true
-                  prerelease: false
-                  files: |
-                      builds/*.AppImage
-                      builds/*.deb
-                      builds/*.rpm
-                      builds/*.zip
-                      builds/*.exe
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📦 Upload release assets to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Release v${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          prerelease: false
+          files: |
+            builds/*.AppImage
+            builds/*.deb
+            builds/*.rpm
+            builds/*.zip
+            builds/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

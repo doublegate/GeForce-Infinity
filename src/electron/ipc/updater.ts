@@ -3,24 +3,24 @@ import pkg from "electron-updater";
 const { autoUpdater } = pkg;
 
 export function registerUpdaterHandlers({
-    mainWindow,
+  mainWindow,
 }: {
-    mainWindow: BrowserWindow;
+  mainWindow: BrowserWindow;
 }) {
-    ipcMain.handle("check-for-updates", () => autoUpdater.checkForUpdates());
-    ipcMain.on("quit-and-install", () => autoUpdater.quitAndInstall());
-    ipcMain.handle("download-update", async () => {
-        try {
-            await autoUpdater.downloadUpdate();
-        } catch (e) {
-            console.error("Failed download update:", e);
-        }
-    });
+  ipcMain.handle("check-for-updates", () => autoUpdater.checkForUpdates());
+  ipcMain.on("quit-and-install", () => autoUpdater.quitAndInstall());
+  ipcMain.handle("download-update", async () => {
+    try {
+      await autoUpdater.downloadUpdate();
+    } catch (e) {
+      console.error("Failed download update:", e);
+    }
+  });
 
-    autoUpdater.on("update-available", () => {
-        mainWindow.webContents.send("update-available");
-    });
-    autoUpdater.on("update-downloaded", () => {
-        mainWindow.webContents.send("update-downloaded");
-    });
+  autoUpdater.on("update-available", () => {
+    mainWindow.webContents.send("update-available");
+  });
+  autoUpdater.on("update-downloaded", () => {
+    mainWindow.webContents.send("update-downloaded");
+  });
 }

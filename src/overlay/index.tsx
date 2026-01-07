@@ -9,15 +9,15 @@ import { UserProvider } from "./contexts/UserContext";
 
 let css = "";
 try {
-    css = window.electronAPI?.getTailwindCss() || "";
+  css = window.electronAPI?.getTailwindCss() || "";
 } catch (error) {
-    console.error("Failed to get Tailwind CSS:", error);
+  console.error("Failed to get Tailwind CSS:", error);
 }
 
 if (css) {
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
 }
 
 const mount = document.createElement("div");
@@ -25,53 +25,56 @@ mount.id = "geforce-infinity-sidebar-root";
 document.body.appendChild(mount);
 
 const App = () => {
-    const [visible, setVisible] = React.useState(false);
-    const [config, setConfig] = useState<Config>(defaultConfig);
+  const [visible, setVisible] = React.useState(false);
+  const [config, setConfig] = useState<Config>(defaultConfig);
 
-    useEffect(() => {
-        if (window.electronAPI) {
-            window.electronAPI.getCurrentConfig().then((config) => {
-                setConfig(config);
-            }).catch((error) => {
-                console.error("Failed to get current config:", error);
-            });
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI
+        .getCurrentConfig()
+        .then((config) => {
+          setConfig(config);
+        })
+        .catch((error) => {
+          console.error("Failed to get current config:", error);
+        });
 
-            window.electronAPI.onConfigLoaded((config: Config) => {
-                console.log("Config loaded in overlay:", config);
-                setConfig(config);
-            });
+      window.electronAPI.onConfigLoaded((config: Config) => {
+        console.log("Config loaded in overlay:", config);
+        setConfig(config);
+      });
 
-            // Listen for global shortcut toggle from main process
-            window.electronAPI.onSidebarToggle(() => {
-                setVisible((v) => !v);
-            });
-        } else {
-            console.warn("electronAPI not available, using default config");
-        }
+      // Listen for global shortcut toggle from main process
+      window.electronAPI.onSidebarToggle(() => {
+        setVisible((v) => !v);
+      });
+    } else {
+      console.warn("electronAPI not available, using default config");
+    }
 
-        // Fallback keyboard handler for when overlay has focus
-        const handler = (e: KeyboardEvent) => {
-            if (e.ctrlKey && e.key === "i") {
-                e.preventDefault();
-                setVisible((v) => !v);
-            }
-        };
+    // Fallback keyboard handler for when overlay has focus
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "i") {
+        e.preventDefault();
+        setVisible((v) => !v);
+      }
+    };
 
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, []);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
-    useEffect(() => {
-        if (window.electronAPI) {
-            window.electronAPI.saveConfig(config);
-        }
-    }, [config]);
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.saveConfig(config);
+    }
+  }, [config]);
 
-    return (
-        <UserProvider>
-            <Sidebar config={config} setConfig={setConfig} visible={visible} />
-        </UserProvider>
-    );
+  return (
+    <UserProvider>
+      <Sidebar config={config} setConfig={setConfig} visible={visible} />
+    </UserProvider>
+  );
 };
 
 createRoot(mount).render(<App />);
