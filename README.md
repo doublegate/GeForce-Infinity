@@ -124,7 +124,16 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **React**: Component-based UI for the overlay interface
 - **Build System**: Modern build pipeline with esbuild, TypeScript compiler, and Tailwind CSS
 
-### **Latest Release (v1.5.2) - January 2026**
+### **Latest Release (v1.5.3) - January 2026**
+
+**SIDEBAR TOGGLE FIX (PROPERLY FIXED)** - Ctrl+I finally works correctly
+
+- **Bug Fix**: Properly fixed Ctrl+I sidebar toggle (broken since v1.5.0)
+- **Root Cause**: v1.5.1's fix failed due to contextBridge callback serialization issues
+- **Solution**: Implemented CustomEvent architecture for proper IPC communication
+- **Technical Details**: Preload dispatches CustomEvent, overlay listens directly on window
+
+### **Previous Release (v1.5.2) - January 2026**
 
 **TECHNICAL DEBT REMEDIATION** - Major code quality and security improvements
 
@@ -134,15 +143,6 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **Refactoring**: Extracted network interceptor (main.ts reduced 54%)
 - **CI/CD**: Added PR validation workflow for automated quality checks
 - **Formatting**: Applied Prettier to 63 files for consistent code style
-
-### **Previous Release (v1.5.1) - January 2026**
-
-**SIDEBAR TOGGLE FIX** - Restored Ctrl+I keyboard shortcut functionality
-
-- **Bug Fix**: Fixed Ctrl+I global shortcut not working to toggle the sidebar
-- **Global Shortcut**: Re-enabled shortcut registration in main process
-- **IPC Listener**: Added sidebar toggle event handler in overlay
-- **Dual Handler**: Both IPC and direct keyboard handlers for reliable shortcut support
 
 ### **Previous Release (v1.5.0) - January 2026**
 

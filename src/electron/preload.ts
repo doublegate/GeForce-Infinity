@@ -14,17 +14,21 @@ declare global {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  console.log(
+    "[Preload] DOMContentLoaded fired - will load overlay script in 100ms",
+  );
   setTimeout(() => {
+    console.log("[Preload] Loading overlay script from app://overlay/index.js");
     try {
       const script = document.createElement("script");
       script.type = "module";
       script.src = "app://overlay/index.js";
       script.onerror = (error) => {
-        console.log("Overlay script failed to load (may be normal):", error);
+        console.error("[Preload] OVERLAY SCRIPT FAILED TO LOAD:", error);
         // Don't throw error - this is expected if overlay files don't exist
       };
       script.onload = () => {
-        console.log("Overlay script loaded successfully");
+        console.log("[Preload] Overlay script loaded successfully!");
       };
 
       // Add additional error handling for script execution
@@ -35,17 +39,17 @@ window.addEventListener("DOMContentLoaded", () => {
       // Wrap script append in additional try-catch
       try {
         document.body.appendChild(script);
+        console.log("[Preload] Overlay script element appended to body");
       } catch (appendError) {
-        console.log(
-          "Error appending overlay script (may be normal):",
-          appendError,
-        );
+        console.error("[Preload] Error appending overlay script:", appendError);
       }
     } catch (error) {
-      console.log("Error creating overlay script (may be normal):", error);
+      console.error("[Preload] Error creating overlay script:", error);
     }
   }, 100); // Small delay to ensure page is fully ready
 });
+
+console.log("[Preload] Preload script initialization complete");
 
 const cssPath = path.join(__dirname, "../assets/tailwind.bundle.css");
 let tailwindCss = "";
@@ -55,12 +59,32 @@ try {
   console.error("❌ Failed to read Tailwind CSS:", err);
 }
 
+console.log("[Preload] Setting up electronAPI via contextBridge...");
+
+// Set up IPC listener immediately and dispatch CustomEvent to the page
+// Using CustomEvent is more reliable than passing callbacks across the contextBridge
+// The overlay listens for this event directly on window
+console.log("[Preload] Setting up sidebar-toggle IPC listener...");
+ipcRenderer.on("sidebar-toggle", () => {
+  console.log(
+    "[Preload] 'sidebar-toggle' IPC received! Dispatching CustomEvent to page...",
+  );
+  window.dispatchEvent(new CustomEvent("geforce-infinity-sidebar-toggle"));
+  console.log(
+    "[Preload] CustomEvent 'geforce-infinity-sidebar-toggle' dispatched",
+  );
+});
+
 contextBridge.exposeInMainWorld("electronAPI", {
   getTailwindCss: () => tailwindCss,
+  // Note: onSidebarToggle is kept for backward compatibility but the overlay now
+  // listens directly for the 'geforce-infinity-sidebar-toggle' CustomEvent instead
   onSidebarToggle: (callback: () => void) => {
-    ipcRenderer.on("sidebar-toggle", (_event, ...args) => {
-      callback();
-    });
+    console.log(
+      "[Preload] onSidebarToggle called (legacy - overlay uses direct CustomEvent listener now)",
+    );
+    // Legacy callback support - overlay should use direct CustomEvent listener instead
+    window.addEventListener("geforce-infinity-sidebar-toggle", callback);
   },
   saveConfig: (config: Partial<Config>) =>
     ipcRenderer.send("save-config", config),

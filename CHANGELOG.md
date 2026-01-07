@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.3 (2026-01-07) - SIDEBAR TOGGLE FIX (PROPERLY FIXED)
+
+### Overview
+
+Critical bug fix release that **finally** resolves the Ctrl+I sidebar toggle functionality. The v1.5.1 fix did not work due to contextBridge callback serialization issues. This release implements a proper CustomEvent-based architecture that correctly handles IPC communication across Electron's isolated contexts.
+
+### Bug Fixes
+
+- **Sidebar Toggle (Ctrl+I)**: Properly fixed the global shortcut that was broken since v1.5.0
+  - v1.5.1's fix relied on passing callback functions across Electron's contextBridge
+  - Callbacks fail silently due to serialization issues between isolated contexts
+  - IPC listener was set up inside a function (delayed) rather than immediately
+
+### Technical Solution: CustomEvent Architecture
+
+The proper fix uses a CustomEvent-based architecture instead of callback serialization:
+
+```
+Main Process (Ctrl+I detected)
+    ↓
+IPC "sidebar-toggle" message
+    ↓
+Preload (immediate listener, runs on load)
+    ↓
+CustomEvent dispatched to window
+    ↓
+Overlay listens for CustomEvent directly on window
+    ↓
+Sidebar toggles successfully
+```
+
+### Root Cause Analysis
+
+1. **v1.5.0 (Diagnostics Release)**: Global shortcut registration was commented out, breaking Ctrl+I
+2. **v1.5.1 (First Fix Attempt)**: Re-enabled shortcut but used callback-based IPC pattern
+   - The `onSidebarToggle(callback)` approach failed because contextBridge cannot serialize functions
+   - Callbacks passed through contextBridge become undefined or throw silently
+3. **v1.5.3 (This Release)**: Implemented proper CustomEvent pattern
+   - Preload script sets up IPC listener immediately on load (not inside a function)
+   - Uses `window.dispatchEvent(new CustomEvent('sidebar-toggle'))` for communication
+   - Overlay component adds event listener directly on window object
+   - No function serialization required - only string events
+
+### Files Modified
+
+- `src/electron/main.ts` - Added debug logging for shortcut registration verification
+- `src/electron/preload.ts` - IPC listener runs immediately, dispatches CustomEvent to window
+- `src/overlay/index.tsx` - Listens for CustomEvent directly on window instead of IPC callback
+
+### Technical Notes
+
+This fix demonstrates an important pattern for Electron IPC communication:
+- **Never pass callbacks** through contextBridge for IPC events
+- **Use CustomEvents** for renderer-to-renderer communication triggered by main process
+- **Immediate listeners** in preload ensure events are never missed
+- **Debug logging** in main process helps verify shortcut registration
+
+---
+
 ## 1.5.2 (2026-01-07) - TECHNICAL DEBT REMEDIATION
 
 ### Overview
@@ -75,12 +134,12 @@ Major technical debt remediation release focused on code quality, security, test
 
 ### Technical Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| ESLint Warnings | 25 | 0 | 100% |
-| Security Vulnerabilities | 10 | 2 | 80% |
-| Test Coverage | 0% | Initial | New capability |
-| main.ts Lines | 810 | 372 | 54% reduction |
+| Metric                   | Before | After   | Improvement    |
+| ------------------------ | ------ | ------- | -------------- |
+| ESLint Warnings          | 25     | 0       | 100%           |
+| Security Vulnerabilities | 10     | 2       | 80%            |
+| Test Coverage            | 0%     | Initial | New capability |
+| main.ts Lines            | 810    | 372     | 54% reduction  |
 
 ---
 

@@ -29,6 +29,14 @@ const App = () => {
   const [config, setConfig] = useState<Config>(defaultConfig);
 
   useEffect(() => {
+    console.log(
+      "[Overlay] useEffect running - setting up sidebar toggle handlers",
+    );
+    console.log(
+      "[Overlay] window.electronAPI available:",
+      !!window.electronAPI,
+    );
+
     if (window.electronAPI) {
       window.electronAPI
         .getCurrentConfig()
@@ -43,25 +51,58 @@ const App = () => {
         console.log("Config loaded in overlay:", config);
         setConfig(config);
       });
-
-      // Listen for global shortcut toggle from main process
-      window.electronAPI.onSidebarToggle(() => {
-        setVisible((v) => !v);
-      });
     } else {
       console.warn("electronAPI not available, using default config");
     }
 
+    // Direct CustomEvent listener for sidebar toggle from main process
+    // This is more reliable than using contextBridge callbacks which can fail silently
+    console.log(
+      "[Overlay] Registering direct CustomEvent listener for sidebar-toggle...",
+    );
+    const customEventHandler = () => {
+      console.log(
+        "[Overlay] CustomEvent 'geforce-infinity-sidebar-toggle' received! Toggling visibility...",
+      );
+      setVisible((v) => {
+        console.log("[Overlay] Visibility changing from", v, "to", !v);
+        return !v;
+      });
+    };
+    window.addEventListener(
+      "geforce-infinity-sidebar-toggle",
+      customEventHandler,
+    );
+    console.log("[Overlay] Direct CustomEvent listener registered");
+
     // Fallback keyboard handler for when overlay has focus
-    const handler = (e: KeyboardEvent) => {
+    console.log(
+      "[Overlay] Registering fallback keyboard handler for Ctrl+I...",
+    );
+    const keyboardHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "i") {
+        console.log(
+          "[Overlay] Ctrl+I detected via keyboard handler! Toggling visibility...",
+        );
         e.preventDefault();
-        setVisible((v) => !v);
+        setVisible((v) => {
+          console.log("[Overlay] Visibility changing from", v, "to", !v);
+          return !v;
+        });
       }
     };
 
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", keyboardHandler);
+    console.log("[Overlay] Keyboard handler registered on window");
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener(
+        "geforce-infinity-sidebar-toggle",
+        customEventHandler,
+      );
+      window.removeEventListener("keydown", keyboardHandler);
+    };
   }, []);
 
   useEffect(() => {
