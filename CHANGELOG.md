@@ -2,6 +2,111 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.4 (2026-01-07) - SIDEBAR TOGGLE FIX (FINAL FIX)
+
+### Overview
+
+Critical bug fix release that **finally** resolves the Ctrl+I sidebar toggle functionality with the correct contextBridge callback pattern. Previous attempts (v1.5.1, v1.5.2, v1.5.3) all failed due to fundamental misunderstandings of Electron's context isolation boundary.
+
+### Bug Fixes
+
+- **Sidebar Toggle (Ctrl+I)**: Finally fixed the global shortcut with proper contextBridge callback pattern
+  - v1.5.1 used callback-based IPC that failed silently
+  - v1.5.2 focused on technical debt, sidebar still broken
+  - v1.5.3 tried CustomEvent approach - also fails with contextIsolation
+  - v1.5.4 uses the correct contextBridge callback proxy pattern
+
+### Root Cause Analysis
+
+With Electron's `contextIsolation: true`, there are TWO completely separate JavaScript contexts:
+1. **Preload context** - Has access to Node.js and Electron APIs
+2. **Page context** - The renderer/React application
+
+**Why previous approaches failed:**
+- **Callbacks via contextBridge methods**: Works! Electron creates a proxy
+- **CustomEvent dispatch in preload**: Fails! preload's `window` is NOT the page's `window`
+- **Direct IPC listener registration**: Fails! Page cannot access `ipcRenderer`
+
+### Technical Solution: contextBridge Callback Pattern
+
+```
+Main Process (Ctrl+I detected via globalShortcut)
+    |
+    v
+IPC "sidebar-toggle" message sent to webContents
+    |
+    v
+Preload receives IPC (ipcRenderer.on listener set up on load)
+    |
+    v
+Preload invokes stored callback (registered via contextBridge)
+    |
+    v
+Callback executes in page context (Electron proxies the call)
+    |
+    v
+React state updates, sidebar toggles
+```
+
+### Implementation Details
+
+**src/electron/preload.ts:**
+```typescript
+// Store callback at module level
+let sidebarToggleCallback: (() => void) | null = null;
+
+// IPC listener runs immediately on preload load
+ipcRenderer.on("sidebar-toggle", () => {
+  if (sidebarToggleCallback) {
+    sidebarToggleCallback(); // Calls through Electron's proxy
+  }
+});
+
+// Expose callback registration via contextBridge
+contextBridge.exposeInMainWorld("electronAPI", {
+  onSidebarToggle: (callback: () => void) => {
+    sidebarToggleCallback = callback; // Store for later invocation
+  },
+  // ... other methods
+});
+```
+
+**src/overlay/index.tsx:**
+```typescript
+useEffect(() => {
+  // Register callback - Electron creates proxy that works across contexts
+  window.electronAPI.onSidebarToggle(() => {
+    setVisible((v) => !v);
+  });
+}, []);
+```
+
+### Why This Works
+
+1. **Callbacks CAN be passed through contextBridge** - Electron creates a special proxy
+2. **The proxy handles context isolation** - When preload invokes the callback, Electron routes it to the page context
+3. **No reliance on shared window object** - Each context has its own window, but callbacks bridge them
+
+### Files Modified
+
+- `src/electron/preload.ts` - IPC listener + callback storage pattern
+- `src/overlay/index.tsx` - Callback registration via electronAPI.onSidebarToggle()
+- `src/electron/main.ts` - Debug logging for shortcut registration verification
+- `package.json` - Version bump to 1.5.4
+- `VERSION` - Version bump to 1.5.4
+- `CHANGELOG.md` - This release documentation
+- `README.md` - Updated latest release section
+
+### Technical Notes
+
+This fix demonstrates the ONLY correct pattern for main-to-renderer communication in Electron with context isolation:
+
+1. **Main -> Preload**: Use `webContents.send()` and `ipcRenderer.on()`
+2. **Preload -> Page**: Use callback functions registered via `contextBridge`
+3. **NEVER rely on**: Shared window object, CustomEvent, or direct DOM manipulation across contexts
+
+---
+
 ## 1.5.3 (2026-01-07) - SIDEBAR TOGGLE FIX (PROPERLY FIXED)
 
 ### Overview

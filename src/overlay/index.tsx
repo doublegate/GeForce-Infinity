@@ -1,10 +1,9 @@
 import * as React from "react";
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Sidebar from "./components/sidebar";
 import type { Config } from "../shared/types";
 import { defaultConfig } from "../shared/types";
-import { User } from "firebase/auth";
 import { UserProvider } from "./contexts/UserContext";
 
 let css = "";
@@ -29,61 +28,52 @@ const App = () => {
   const [config, setConfig] = useState<Config>(defaultConfig);
 
   useEffect(() => {
-    console.log(
-      "[Overlay] useEffect running - setting up sidebar toggle handlers",
-    );
-    console.log(
-      "[Overlay] window.electronAPI available:",
-      !!window.electronAPI,
-    );
+    console.log("[Overlay] useEffect running - setting up sidebar toggle handlers");
+    console.log("[Overlay] window.electronAPI available:", !!window.electronAPI);
 
     if (window.electronAPI) {
+      // Load initial config
       window.electronAPI
         .getCurrentConfig()
         .then((config) => {
+          console.log("[Overlay] Initial config loaded:", config);
           setConfig(config);
         })
         .catch((error) => {
-          console.error("Failed to get current config:", error);
+          console.error("[Overlay] Failed to get current config:", error);
         });
 
+      // Listen for config changes
       window.electronAPI.onConfigLoaded((config: Config) => {
-        console.log("Config loaded in overlay:", config);
+        console.log("[Overlay] Config updated from main process:", config);
         setConfig(config);
       });
+
+      // Register callback for sidebar toggle from main process (via globalShortcut)
+      // This is the proper contextBridge pattern - callbacks can be passed through
+      // and Electron creates a proxy that allows cross-context invocation
+      console.log("[Overlay] Registering sidebar toggle callback via electronAPI...");
+      window.electronAPI.onSidebarToggle(() => {
+        console.log("[Overlay] Sidebar toggle callback invoked! Toggling visibility...");
+        setVisible((v) => {
+          console.log("[Overlay] Visibility changing from", v, "to", !v);
+          return !v;
+        });
+      });
+      console.log("[Overlay] Sidebar toggle callback registered successfully");
     } else {
-      console.warn("electronAPI not available, using default config");
+      console.warn("[Overlay] electronAPI not available, using default config");
     }
 
-    // Direct CustomEvent listener for sidebar toggle from main process
-    // This is more reliable than using contextBridge callbacks which can fail silently
-    console.log(
-      "[Overlay] Registering direct CustomEvent listener for sidebar-toggle...",
-    );
-    const customEventHandler = () => {
-      console.log(
-        "[Overlay] CustomEvent 'geforce-infinity-sidebar-toggle' received! Toggling visibility...",
-      );
-      setVisible((v) => {
-        console.log("[Overlay] Visibility changing from", v, "to", !v);
-        return !v;
-      });
-    };
-    window.addEventListener(
-      "geforce-infinity-sidebar-toggle",
-      customEventHandler,
-    );
-    console.log("[Overlay] Direct CustomEvent listener registered");
-
-    // Fallback keyboard handler for when overlay has focus
-    console.log(
-      "[Overlay] Registering fallback keyboard handler for Ctrl+I...",
-    );
+    // Fallback keyboard handler - this catches Ctrl+I when:
+    // 1. globalShortcut fails to register (another app has it)
+    // 2. The user is focused on an element that receives keyboard events
+    // Note: With globalShortcut registered, Ctrl+I is intercepted at system level
+    // so this handler mainly serves as a fallback
+    console.log("[Overlay] Registering fallback keyboard handler for Ctrl+I...");
     const keyboardHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "i") {
-        console.log(
-          "[Overlay] Ctrl+I detected via keyboard handler! Toggling visibility...",
-        );
+        console.log("[Overlay] Ctrl+I detected via keyboard handler! Toggling visibility...");
         e.preventDefault();
         setVisible((v) => {
           console.log("[Overlay] Visibility changing from", v, "to", !v);
@@ -97,10 +87,6 @@ const App = () => {
 
     // Cleanup function
     return () => {
-      window.removeEventListener(
-        "geforce-infinity-sidebar-toggle",
-        customEventHandler,
-      );
       window.removeEventListener("keydown", keyboardHandler);
     };
   }, []);

@@ -61,36 +61,38 @@ try {
 
 console.log("[Preload] Setting up electronAPI via contextBridge...");
 
-// Set up IPC listener immediately and dispatch CustomEvent to the page
-// Using CustomEvent is more reliable than passing callbacks across the contextBridge
-// The overlay listens for this event directly on window
-console.log("[Preload] Setting up sidebar-toggle IPC listener...");
+// Store sidebar toggle callback to be called when IPC is received
+// With contextIsolation: true, the preload's window is separate from the page's window
+// so we cannot use CustomEvent - we must use contextBridge callback pattern
+let sidebarToggleCallback: (() => void) | null = null;
+
+// Set up IPC listener that will call the registered callback
 ipcRenderer.on("sidebar-toggle", () => {
-  console.log(
-    "[Preload] 'sidebar-toggle' IPC received! Dispatching CustomEvent to page...",
-  );
-  window.dispatchEvent(new CustomEvent("geforce-infinity-sidebar-toggle"));
-  console.log(
-    "[Preload] CustomEvent 'geforce-infinity-sidebar-toggle' dispatched",
-  );
+  console.log("[Preload] 'sidebar-toggle' IPC received from main process!");
+  if (sidebarToggleCallback) {
+    console.log("[Preload] Calling registered sidebar toggle callback...");
+    sidebarToggleCallback();
+    console.log("[Preload] Sidebar toggle callback executed successfully");
+  } else {
+    console.warn("[Preload] No sidebar toggle callback registered yet!");
+  }
 });
 
 contextBridge.exposeInMainWorld("electronAPI", {
   getTailwindCss: () => tailwindCss,
-  // Note: onSidebarToggle is kept for backward compatibility but the overlay now
-  // listens directly for the 'geforce-infinity-sidebar-toggle' CustomEvent instead
+  // Register a callback to be called when sidebar-toggle IPC is received
+  // This is the proper contextBridge pattern - callbacks CAN be passed through
+  // and Electron creates a proxy that allows cross-context invocation
   onSidebarToggle: (callback: () => void) => {
-    console.log(
-      "[Preload] onSidebarToggle called (legacy - overlay uses direct CustomEvent listener now)",
-    );
-    // Legacy callback support - overlay should use direct CustomEvent listener instead
-    window.addEventListener("geforce-infinity-sidebar-toggle", callback);
+    console.log("[Preload] onSidebarToggle: Registering callback for sidebar toggle");
+    sidebarToggleCallback = callback;
+    console.log("[Preload] onSidebarToggle: Callback registered successfully");
   },
   saveConfig: (config: Partial<Config>) =>
     ipcRenderer.send("save-config", config),
   getCurrentConfig: () => ipcRenderer.invoke("get-config"),
   onConfigLoaded: (callback: (config: Config) => void) => {
-    ipcRenderer.on("config-loaded", (event, config) => callback(config));
+    ipcRenderer.on("config-loaded", (_event, config) => callback(config));
   },
   reloadGFN: () => {
     ipcRenderer.send("reload-gfn");
