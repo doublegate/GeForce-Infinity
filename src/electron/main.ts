@@ -155,16 +155,44 @@ async function registerAppProtocols() {
 }
 
 function registerShortcuts(mainWindow: BrowserWindow) {
+  // Strategy: Use globalShortcut with executeJavaScript to dispatch a CustomEvent
+  // This bypasses contextBridge callback issues that have plagued v1.5.1-v1.5.5
+  //
+  // Why this works:
+  // 1. globalShortcut captures Ctrl+I at OS level (works even when focused elsewhere)
+  // 2. executeJavaScript directly dispatches a CustomEvent in the renderer's main world
+  // 3. The overlay's event listener receives it reliably (no IPC callback proxying)
+  //
+  // Previous issues:
+  // - contextBridge callbacks (v1.5.1-v1.5.4) failed due to proxy/context issues
+  // - IPC with ipcRenderer.on didn't reliably invoke the React state setter
+  // - v1.4.0 worked because it used keyboard-only (no globalShortcut)
   const success = globalShortcut.register("Control+I", () => {
-    console.log("[Shortcuts] Control+I pressed! Sending sidebar-toggle IPC...");
-    mainWindow.webContents.send("sidebar-toggle");
-    console.log("[Shortcuts] sidebar-toggle IPC sent to webContents");
+    console.log(
+      "[Shortcuts] Control+I pressed! Dispatching sidebar-toggle CustomEvent...",
+    );
+    // Dispatch a CustomEvent directly in the renderer - bypasses IPC callback issues
+    mainWindow.webContents
+      .executeJavaScript(
+        `
+      (function() {
+        console.log('[Shortcuts] Dispatching geforce-sidebar-toggle CustomEvent');
+        document.dispatchEvent(new CustomEvent('geforce-sidebar-toggle'));
+      })();
+    `,
+      )
+      .catch((err) => {
+        console.error("[Shortcuts] Failed to dispatch CustomEvent:", err);
+      });
   });
 
   console.log("[Shortcuts] Sidebar shortcut registered?", success);
   if (!success) {
     console.error(
       "[Shortcuts] FAILED to register Control+I shortcut - another app may have it registered",
+    );
+    console.log(
+      "[Shortcuts] Falling back to keyboard handler in overlay (Ctrl+I when window focused)",
     );
   }
 

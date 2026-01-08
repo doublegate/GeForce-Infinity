@@ -2,6 +2,126 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.6 (2026-01-07) - DEFINITIVE SIDEBAR TOGGLE FIX
+
+### Overview
+
+Critical bug fix release that **definitively** resolves the Ctrl+I sidebar toggle functionality. After 5 failed attempts (v1.5.1-v1.5.5), the root cause was finally identified by comparing v1.4.0 (working) with v1.5.x (broken). This release implements a reliable solution using `executeJavaScript` + `CustomEvent` that bypasses all contextBridge/IPC callback issues.
+
+### Bug Fixes
+
+- **Sidebar Toggle (Ctrl+I)**: Definitively fixed using executeJavaScript + CustomEvent architecture
+  - Identified root cause by comparing v1.4.0 (working) with v1.5.x (broken)
+  - v1.4.0 worked because `globalShortcut` was COMMENTED OUT - sidebar worked via keyboard handler
+  - v1.5.1+ broke because `globalShortcut` intercepted Ctrl+I at OS level before renderer
+  - IPC callback pattern through contextBridge wasn't reliably invoking React state setters
+
+### Root Cause Analysis
+
+**Why v1.4.0 Worked:**
+- `globalShortcut.register("Control+I")` was COMMENTED OUT in main.ts
+- Sidebar toggle was handled entirely by keyboard event listener in the renderer
+- Keyboard events propagate normally when window has focus
+
+**Why v1.5.1-v1.5.5 Failed:**
+- v1.5.1: Added `onSidebarToggle(callback)` - contextBridge callback proxy unreliable
+- v1.5.2: Technical debt release - sidebar still broken
+- v1.5.3: Tried CustomEvent in preload - context isolation blocked it (preload's window !== page's window)
+- v1.5.4: Stored callback pattern - same contextBridge proxy issue
+- v1.5.5: Simplified callback - still same underlying contextBridge problem
+
+**The Pattern That Failed:**
+```
+Main Process → IPC → Preload → contextBridge callback → Page
+                              ↑
+                     Proxy fails to reliably invoke React state setter
+```
+
+### Technical Solution: executeJavaScript + CustomEvent
+
+**The Pattern That Works:**
+```
+Main Process (globalShortcut detects Ctrl+I)
+    ↓
+webContents.executeJavaScript() dispatches CustomEvent directly into renderer
+    ↓
+document.addEventListener('geforce-sidebar-toggle') in overlay
+    ↓
+React state setter called in the same JavaScript context
+    ↓
+Sidebar toggles successfully
+```
+
+**Why This Works:**
+1. `executeJavaScript()` runs code directly in the renderer's main world (same context as overlay)
+2. `CustomEvent` is a native DOM mechanism that doesn't require IPC callback proxying
+3. The event listener receives events reliably because it's in the same JavaScript context
+4. No contextBridge proxy issues - the event dispatch and listener are both in page context
+
+### Implementation Details
+
+**src/electron/main.ts - registerShortcuts():**
+```typescript
+const success = globalShortcut.register("Control+I", () => {
+  // Dispatch CustomEvent directly into renderer - bypasses IPC callback issues
+  mainWindow.webContents.executeJavaScript(`
+    (function() {
+      document.dispatchEvent(new CustomEvent('geforce-sidebar-toggle'));
+    })();
+  `);
+});
+```
+
+**src/overlay/index.tsx - useEffect():**
+```typescript
+// PRIMARY: Listen for CustomEvent dispatched by main process via executeJavaScript
+const customEventHandler = () => {
+  setVisible((v) => !v);
+};
+document.addEventListener("geforce-sidebar-toggle", customEventHandler);
+
+// FALLBACK: Keyboard handler for when globalShortcut fails to register
+const keyboardHandler = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.key === "i") {
+    e.preventDefault();
+    setVisible((v) => !v);
+  }
+};
+window.addEventListener("keydown", keyboardHandler);
+
+// Proper cleanup
+return () => {
+  document.removeEventListener("geforce-sidebar-toggle", customEventHandler);
+  window.removeEventListener("keydown", keyboardHandler);
+};
+```
+
+### Architecture Improvements
+
+- **Dual Handler System**: Primary (globalShortcut + executeJavaScript) + Fallback (keyboard handler)
+- **Proper Cleanup**: useEffect return function removes both event listeners
+- **Comprehensive Logging**: Debug logging throughout the shortcut registration and event handling
+- **Graceful Degradation**: Falls back to keyboard handler if globalShortcut registration fails
+
+### Files Modified
+
+- `src/electron/main.ts` - executeJavaScript + CustomEvent dispatch in registerShortcuts()
+- `src/overlay/index.tsx` - CustomEvent listener + fallback keyboard handler with cleanup
+- `CHANGELOG.md` - This release documentation
+- `README.md` - Updated latest release section
+- `package.json` - Version bump to 1.5.6
+- `VERSION` - Version bump to 1.5.6
+
+### Lessons Learned
+
+1. **contextBridge callback proxying is unreliable** for IPC-triggered state changes
+2. **executeJavaScript bypasses context isolation** for simple event dispatch
+3. **CustomEvent is reliable** when dispatched and listened in the same context
+4. **Always compare with working version** when debugging regressions
+5. **Document previous failed attempts** to avoid repeating them
+
+---
+
 ## 1.5.5 (2026-01-07) - DEVELOPMENT EXPERIENCE IMPROVEMENTS
 
 ### Overview

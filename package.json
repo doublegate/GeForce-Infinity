@@ -1,6 +1,6 @@
 {
   "name": "geforce-infinity",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "main": "dist/electron/main.js",
   "scripts": {
     "lint": "eslint .",
