@@ -61,32 +61,18 @@ try {
 
 console.log("[Preload] Setting up electronAPI via contextBridge...");
 
-// Store sidebar toggle callback to be called when IPC is received
-// With contextIsolation: true, the preload's window is separate from the page's window
-// so we cannot use CustomEvent - we must use contextBridge callback pattern
-let sidebarToggleCallback: (() => void) | null = null;
-
-// Set up IPC listener that will call the registered callback
-ipcRenderer.on("sidebar-toggle", () => {
-  console.log("[Preload] 'sidebar-toggle' IPC received from main process!");
-  if (sidebarToggleCallback) {
-    console.log("[Preload] Calling registered sidebar toggle callback...");
-    sidebarToggleCallback();
-    console.log("[Preload] Sidebar toggle callback executed successfully");
-  } else {
-    console.warn("[Preload] No sidebar toggle callback registered yet!");
-  }
-});
-
 contextBridge.exposeInMainWorld("electronAPI", {
   getTailwindCss: () => tailwindCss,
   // Register a callback to be called when sidebar-toggle IPC is received
-  // This is the proper contextBridge pattern - callbacks CAN be passed through
-  // and Electron creates a proxy that allows cross-context invocation
+  // This is the v1.4.0 pattern - directly pass callback to ipcRenderer.on
+  // The callback is proxied through contextBridge and invoked when IPC arrives
   onSidebarToggle: (callback: () => void) => {
-    console.log("[Preload] onSidebarToggle: Registering callback for sidebar toggle");
-    sidebarToggleCallback = callback;
-    console.log("[Preload] onSidebarToggle: Callback registered successfully");
+    console.log("[Preload] onSidebarToggle: Registering IPC listener for sidebar-toggle");
+    ipcRenderer.on("sidebar-toggle", (_event) => {
+      console.log("[Preload] sidebar-toggle IPC received, invoking callback...");
+      callback();
+    });
+    console.log("[Preload] onSidebarToggle: IPC listener registered successfully");
   },
   saveConfig: (config: Partial<Config>) =>
     ipcRenderer.send("save-config", config),

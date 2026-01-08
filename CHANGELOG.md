@@ -2,6 +2,64 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.5 (2026-01-07) - DEVELOPMENT EXPERIENCE IMPROVEMENTS
+
+### Overview
+
+Minor release focused on improving the developer experience and simplifying internal code patterns. Adds automatic DevTools opening in development mode and streamlines the IPC callback registration pattern.
+
+### Added
+
+- **Automatic DevTools in Development**: DevTools now opens automatically when running in development mode
+  - Uses `!app.isPackaged` check to detect development environment
+  - Opens in detached mode for better debugging workflow
+  - Allows developers to see renderer console output immediately on startup
+
+### Changed
+
+- **Simplified Sidebar Toggle IPC Pattern**: Streamlined callback registration in preload.ts
+  - Previous pattern: Store callback in module-level variable, invoke on IPC receipt
+  - New pattern: Directly bind callback to `ipcRenderer.on` inside `onSidebarToggle`
+  - Functionally equivalent but cleaner, more straightforward implementation
+  - Reduced code complexity while maintaining exact same behavior
+
+### Technical Details
+
+**window.ts Changes:**
+```typescript
+// Open DevTools in development to see renderer console output
+if (!app.isPackaged) {
+  mainWindow.webContents.openDevTools({ mode: "detach" });
+}
+```
+
+**preload.ts Changes:**
+```typescript
+// Before (v1.5.4): External callback storage
+let sidebarToggleCallback: (() => void) | null = null;
+ipcRenderer.on("sidebar-toggle", () => {
+  if (sidebarToggleCallback) sidebarToggleCallback();
+});
+onSidebarToggle: (callback) => { sidebarToggleCallback = callback; }
+
+// After (v1.5.5): Direct binding
+onSidebarToggle: (callback: () => void) => {
+  ipcRenderer.on("sidebar-toggle", (_event) => {
+    callback();
+  });
+}
+```
+
+### Files Modified
+
+- `src/electron/managers/window.ts` - Added automatic DevTools opening in development mode
+- `src/electron/preload.ts` - Simplified sidebar toggle callback pattern
+- `CHANGELOG.md` - This release documentation
+- `package.json` - Version bump to 1.5.5
+- `VERSION` - Version bump to 1.5.5
+
+---
+
 ## 1.5.4 (2026-01-07) - SIDEBAR TOGGLE FIX (FINAL FIX)
 
 ### Overview

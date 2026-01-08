@@ -124,7 +124,16 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **React**: Component-based UI for the overlay interface
 - **Build System**: Modern build pipeline with esbuild, TypeScript compiler, and Tailwind CSS
 
-### **Latest Release (v1.5.4) - January 2026**
+### **Latest Release (v1.5.5) - January 2026**
+
+**DEVELOPMENT EXPERIENCE IMPROVEMENTS** - Better developer workflow and cleaner code
+
+- **Automatic DevTools**: DevTools now opens automatically in development mode (`!app.isPackaged`)
+- **Detached Mode**: DevTools opens in detached mode for better debugging experience
+- **Simplified IPC Pattern**: Streamlined sidebar toggle callback registration in preload.ts
+- **Cleaner Code**: Reduced code complexity while maintaining identical functionality
+
+### **Previous Release (v1.5.4) - January 2026**
 
 **SIDEBAR TOGGLE FIX (FINAL FIX)** - Ctrl+I finally works correctly with proper contextBridge pattern
 
@@ -133,14 +142,6 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **Why Previous Fixes Failed**: CustomEvent and direct IPC approaches cannot cross the isolation boundary
 - **Solution**: contextBridge callback proxy pattern - callbacks CAN be proxied across contexts
 - **Technical Details**: Preload stores callback, invokes when IPC received; Electron proxies the call
-
-### **Previous Release (v1.5.3) - January 2026**
-
-**SIDEBAR TOGGLE FIX (THIRD ATTEMPT)** - CustomEvent approach (also failed)
-
-- **Bug Fix**: Attempted CustomEvent-based architecture
-- **Issue**: CustomEvent in preload never reaches page due to separate window objects
-- **Status**: Superseded by v1.5.4's correct contextBridge callback pattern
 
 ### **Previous Release (v1.5.2) - January 2026**
 

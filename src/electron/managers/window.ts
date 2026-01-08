@@ -37,7 +37,10 @@ export function createMainWindow(): BrowserWindow {
     console.log("[UserAgent] Using default");
   }
 
-  //mainWindow.webContents.openDevTools();
+  // Open DevTools in development to see renderer console output
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
   mainWindow.loadURL(GFN_WEBSITE);
   return mainWindow;
 }
