@@ -41,6 +41,111 @@ function overrideVersionInDev() {
     }
 }
 
+/**
+ * Log codec and hardware acceleration support at startup.
+ * This helps users diagnose issues with 4K/AV1/HEVC streaming.
+ * See docs/PLATFORM-REQUIREMENTS.md for platform-specific requirements.
+ */
+function logCodecSupport() {
+    console.log("\n========================================");
+    console.log("GeForce Infinity - Codec Support Status");
+    console.log("========================================");
+
+    // Platform information
+    console.log(`Platform: ${process.platform}`);
+    console.log(`Electron: ${process.versions.electron}`);
+    console.log(`Chrome: ${process.versions.chrome}`);
+    console.log(`Node: ${process.versions.node}`);
+    console.log(`V8: ${process.versions.v8}`);
+
+    // GPU and hardware acceleration info
+    console.log("\n--- Hardware Acceleration ---");
+    const gpuFeatureStatus = app.getGPUFeatureStatus();
+    const gpuInfo = app.getGPUInfo("basic");
+
+    console.log("GPU Feature Status:");
+    Object.entries(gpuFeatureStatus).forEach(([feature, status]) => {
+        // Highlight video-related features
+        if (feature.includes("video") || feature.includes("decode") ||
+            feature.includes("gpu") || feature.includes("accelerat")) {
+            console.log(`  ${feature}: ${status}`);
+        }
+    });
+
+    // Log command-line switches that affect codecs
+    console.log("\n--- Codec-Related Command Line Switches ---");
+    const codecSwitches = [
+        "enable-accelerated-video-decode",
+        "enable-hardware-overlays",
+        "enable-features",
+        "disable-features",
+    ];
+
+    codecSwitches.forEach(sw => {
+        const value = app.commandLine.getSwitchValue(sw);
+        if (value) {
+            console.log(`  --${sw}=${value}`);
+        } else if (app.commandLine.hasSwitch(sw)) {
+            console.log(`  --${sw} (enabled)`);
+        }
+    });
+
+    // Codec support summary
+    console.log("\n--- Expected Codec Support ---");
+    console.log("  AV1:  Enabled via Av1Decoder, VaapiAV1Decoder flags");
+    console.log("  HEVC: Enabled via PlatformHEVCDecoderSupport flag");
+    console.log("  VP9:  Standard Chromium support");
+    console.log("  H.264: Standard Chromium support");
+
+    // Platform-specific notes
+    console.log("\n--- Platform Notes ---");
+    if (process.platform === "linux") {
+        console.log("  Linux: Requires VA-API drivers for hardware decoding");
+        console.log("  - AMD: mesa-va-drivers, libva-mesa-driver");
+        console.log("  - NVIDIA: nvidia-vaapi-driver (for newer cards)");
+        console.log("  - Intel: intel-media-driver or libva-intel-driver");
+    } else if (process.platform === "darwin") {
+        console.log("  macOS: Hardware decoding via VideoToolbox");
+        console.log("  - Apple Silicon: Native AV1/HEVC support");
+        console.log("  - Intel Macs: HEVC via T2 chip, AV1 via software");
+    } else if (process.platform === "win32") {
+        console.log("  Windows: Hardware decoding via DXVA2/D3D11");
+        console.log("  - NVIDIA: Requires GTX 10-series or newer for AV1");
+        console.log("  - AMD: Requires RX 6000 series or newer for AV1");
+        console.log("  - Intel: Arc GPUs for AV1, 6th gen+ for HEVC");
+    }
+
+    // Async GPU info (detailed)
+    // Using Electron.GPUInfo type but handling potential structure variations
+    interface GPUDevice {
+        deviceString?: string;
+        deviceId?: number;
+        vendorString?: string;
+        driverVersion?: string;
+    }
+    interface GPUInfoBasic {
+        gpuDevice?: GPUDevice[];
+    }
+
+    gpuInfo.then((rawInfo: unknown) => {
+        const info = rawInfo as GPUInfoBasic;
+        console.log("\n--- GPU Information ---");
+        if (info.gpuDevice && info.gpuDevice.length > 0) {
+            info.gpuDevice.forEach((gpu: GPUDevice, index: number) => {
+                console.log(`  GPU ${index}: ${gpu.deviceString || gpu.deviceId || 'Unknown'}`);
+                if (gpu.vendorString) console.log(`    Vendor: ${gpu.vendorString}`);
+                if (gpu.driverVersion) console.log(`    Driver: ${gpu.driverVersion}`);
+            });
+        } else {
+            console.log("  GPU device info not available");
+        }
+        console.log("========================================\n");
+    }).catch((err: Error) => {
+        console.log("  GPU info retrieval failed:", err.message);
+        console.log("========================================\n");
+    });
+}
+
 function registerCustomProtocols() {
     protocol.registerSchemesAsPrivileged([
         {
@@ -152,11 +257,10 @@ async function registerAppProtocols() {
 }
 
 function registerShortcuts(mainWindow: BrowserWindow) {
-    /*const success = globalShortcut.register("Control+I", () => {
-        mainWindow.webContents.send("sidebar-toggle");
-    });
-
-    console.log("[Shortcuts] Sidebar shortcut registered?", success);*/
+    // Sidebar toggle is now handled via before-input-event in setupWindowEvents()
+    // This approach intercepts keyboard input at the main process level,
+    // before any iframe can consume it, solving the focus-stealing issue.
+    // See docs/SIDEBAR-TOGGLE-DESIGN.md for implementation details.
 
     if (!getConfig().informed) {
         mainWindow.once("ready-to-show", () => {
@@ -178,6 +282,24 @@ function registerShortcuts(mainWindow: BrowserWindow) {
 }
 
 function setupWindowEvents(mainWindow: BrowserWindow) {
+    // Keyboard shortcut handling via before-input-event
+    // This intercepts keyboard input at the main process level, before any
+    // iframe can consume it. This solves the issue where Ctrl+I wouldn't work
+    // when the GeForce NOW streaming iframe had focus.
+    // See docs/SIDEBAR-TOGGLE-DESIGN.md for implementation details.
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        // Handle Ctrl+I (or Cmd+I on macOS) for sidebar toggle
+        const isSidebarToggle =
+            (input.control || input.meta) &&
+            input.key.toLowerCase() === 'i';
+
+        if (isSidebarToggle && input.type === 'keyDown') {
+            console.log('[Shortcuts] Sidebar toggle triggered via before-input-event');
+            mainWindow.webContents.send('sidebar-toggle');
+            event.preventDefault();
+        }
+    });
+
     mainWindow.webContents.on("did-finish-load", async () => {
         const config = getConfig();
         replaceColorInCSS(mainWindow, config.accentColor);
@@ -666,14 +788,9 @@ async function patchFetchForSessionRequest(mainWindow: Electron.CrossProcessExpo
         console.log("[GeForce Infinity] ❌ Could not access frames:", error?.message || error);
     }
     
-    // Enhanced frame event handling for game session detection
-    const setupFrameInjection = (event: string) => {
-        console.log("[GeForce Infinity] 🎮 Setting up", event, "frame injection handler");
-    };
-    
     // Set up listener for new frames that might be created dynamically
-    mainWindow.webContents.on('did-frame-navigate', 
-        (event, url, httpResponseCode, httpStatusText, isMainFrame, frameProcessId, frameRoutingId) => {
+    mainWindow.webContents.on('did-frame-navigate',
+        (_event, url, httpResponseCode, _httpStatusText, isMainFrame, frameProcessId, frameRoutingId) => {
             if (!isMainFrame) {
                 console.log("[GeForce Infinity] 🆕 New frame navigated:", url, "Status:", httpResponseCode);
                 
@@ -696,12 +813,12 @@ async function patchFetchForSessionRequest(mainWindow: Electron.CrossProcessExpo
     );
     
     // Additional frame monitoring events for game session detection
-    mainWindow.webContents.on('did-create-window', (window, details) => {
-        console.log("[GeForce Infinity] 🪟 New window created:", details.url);
+    mainWindow.webContents.on('did-create-window', (_window, details) => {
+        console.log("[GeForce Infinity] New window created:", details.url);
     });
     
-    mainWindow.webContents.on('did-attach-webview', (event, webContents) => {
-        console.log("[GeForce Infinity] 🕸️ WebView attached");
+    mainWindow.webContents.on('did-attach-webview', (_event, _webContents) => {
+        console.log("[GeForce Infinity] WebView attached");
     });
     
     mainWindow.webContents.on('dom-ready', () => {
@@ -718,6 +835,9 @@ async function patchFetchForSessionRequest(mainWindow: Electron.CrossProcessExpo
 }
 
 app.whenReady().then(async () => {
+    // Log codec support information at startup for debugging
+    logCodecSupport();
+
     await registerAppProtocols();
     loadConfig();
 

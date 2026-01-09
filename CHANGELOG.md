@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.5.7 (2026-01-08) - Fresh Sidebar Toggle Implementation
+
+### New Features
+
+* **Fresh Sidebar Toggle Implementation**: Complete reimplementation using Electron's `before-input-event` API
+  - Intercepts Ctrl+I/Cmd+I at main process level before reaching renderer/iframes
+  - Uses webContents.send() for IPC communication to overlay
+  - Maintains DOM event handler as fallback
+  - Works correctly with contextIsolation:true and sandbox:true
+  - Resolves previous v1.5.1-v1.5.6 failed approaches (globalShortcut, executeJavaScript, contextBridge)
+
+* **Startup Codec Verification Logging**: Added comprehensive codec/GPU status logging on application startup
+  - logCodecSupport() function in main.ts
+  - Logs platform info (Electron, Chrome, Node versions)
+  - Reports GPU feature status (video_decode, gpu_compositing)
+  - Shows expected codec support (AV1, HEVC, VP9, H.264)
+  - Displays GPU device information asynchronously
+
+### Documentation
+
+* **SIDEBAR-TOGGLE-DESIGN.md**: Architecture and rationale for sidebar toggle implementation
+* **PLATFORM-REQUIREMENTS.md**: User-facing guide for system requirements per platform
+* **CUSTOM-ELECTRON-BUILD.md**: Comprehensive research on custom Electron builds with codec support
+* **docs/research/**: Detailed research notes including codec support analysis and diagnostic panel investigation
+
+### Code Quality
+
+* Fixed unused parameter declarations (underscore prefix convention)
+* Removed unused imports (createContext, User)
+* Build: 0 errors
+* Lint: 0 errors (11 pre-existing warnings)
+
+### Technical Details
+
+#### Previous Failed Approaches (v1.5.1-v1.5.6)
+- **globalShortcut**: Stole shortcuts from other applications
+- **executeJavaScript + CustomEvent**: Security restrictions with contextIsolation
+- **contextBridge callbacks**: Unreliable with React state management
+
+#### v1.5.7 Solution
+The `before-input-event` API approach:
+1. Intercepts keyboard events at main process level BEFORE reaching any renderer
+2. Works correctly even when focus is on iframe content (GeForce NOW game sessions)
+3. Does not steal shortcuts from other applications
+4. Compatible with contextIsolation:true and sandbox:true security settings
+
 ## 🎉 1.4.0 (2025-09-10) - RESOLUTION OVERRIDE BREAKTHROUGH
 
 ### 🚀 Major Features

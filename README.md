@@ -43,7 +43,6 @@ We have several exciting features planned to further enhance your experience:
 
 - **HDR support**
 - **Surround sound support**
-- **Ability to open sidebar during gameplay**
 - **Account Switching**: Easily switch between different connected accounts within GeForce NOW.
 - **Automatic Game Startup**: Customize which game starts automatically when the app launches.
 
@@ -101,17 +100,25 @@ GeForce Infinity is built with modern web technologies and follows best practice
 - **React**: Component-based UI for the overlay interface
 - **Build System**: Modern build pipeline with esbuild, TypeScript compiler, and Tailwind CSS
 
-### **Major Breakthrough (v1.4.0) - Updated September 10, 2025**
+### **Latest Improvements (v1.5.7) - January 8, 2026**
 
-🎉 **RESOLUTION OVERRIDE NOW WORKING** - The core functionality is finally here!
+**Sidebar Toggle During Gameplay** - Finally working with research-based approach!
 
-- **🔧 Root Cause Resolution**: Identified and solved the iframe isolation issue preventing POST request interception
-- **📡 Iframe Injection System**: Implemented comprehensive webFrameMain API integration for complete frame coverage
-- **🎯 Dual-Layer Interception**: Combined webRequest API with iframe-level fetch/XHR patching for 100% coverage
-- **✅ Working Custom Resolutions**: Users can now successfully stream at 3440x1440, 4K, 120fps, and AV1 codec
-- **🚀 Complete Functionality**: Resolution override system now works as originally designed
-- **⚡ Enhanced Build System**: Fixed TypeScript compilation errors and npm configuration warnings
-- **🛠️ Technical Excellence**: Systematic debugging led to breakthrough iframe injection implementation
+- **Fresh Implementation**: Complete reimplementation using Electron's `before-input-event` API
+- **Works with Iframe Focus**: Sidebar toggle (Ctrl+I) now works even during active game sessions
+- **Security Compatible**: Works correctly with contextIsolation:true and sandbox:true
+- **Codec Verification Logging**: Comprehensive startup logging for debugging codec/GPU status
+- **Platform Documentation**: User-facing guide for system requirements and codec support
+
+### **Major Breakthrough (v1.4.0) - September 10, 2025**
+
+**RESOLUTION OVERRIDE NOW WORKING** - The core functionality is finally here!
+
+- **Root Cause Resolution**: Identified and solved the iframe isolation issue preventing POST request interception
+- **Iframe Injection System**: Implemented comprehensive webFrameMain API integration for complete frame coverage
+- **Dual-Layer Interception**: Combined webRequest API with iframe-level fetch/XHR patching for 100% coverage
+- **Working Custom Resolutions**: Users can now successfully stream at 3440x1440, 4K, 120fps, and AV1 codec
+- **Complete Functionality**: Resolution override system now works as originally designed
 
 ### **Previous Improvements (v1.3.0)**
 

@@ -1,10 +1,9 @@
 import * as React from "react";
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Sidebar from "./components/sidebar";
 import type { Config } from "../shared/types";
 import { defaultConfig } from "../shared/types";
-import { User } from "firebase/auth";
 import { UserProvider } from "./contexts/UserContext";
 
 let css = "";
@@ -35,17 +34,27 @@ const App = () => {
             }).catch((error) => {
                 console.error("Failed to get current config:", error);
             });
-            
+
             window.electronAPI.onConfigLoaded((config: Config) => {
                 console.log("Config loaded in overlay:", config);
                 setConfig(config);
+            });
+
+            // Primary: IPC-based sidebar toggle from main process via before-input-event
+            // This intercepts Ctrl+I at the main process level, before any iframe can
+            // consume the keyboard event. See docs/SIDEBAR-TOGGLE-DESIGN.md for details.
+            window.electronAPI.onSidebarToggle(() => {
+                console.log("[Overlay] Sidebar toggle received via IPC");
+                setVisible((v) => !v);
             });
         } else {
             console.warn("electronAPI not available, using default config");
         }
 
+        // Fallback: DOM event handler for direct overlay interactions
+        // This is kept as a backup in case IPC doesn't work in some edge cases
         const handler = (e: KeyboardEvent) => {
-            if (e.ctrlKey && e.key === "i") {
+            if ((e.ctrlKey || e.metaKey) && e.key === "i") {
                 e.preventDefault();
                 setVisible((v) => !v);
             }

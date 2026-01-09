@@ -139,10 +139,12 @@ test.js
 bun.lockb
 .flatpak-builder
 
-# Claude Code documentation files
+# Claude Code documentation files (excluded from version control)
 CLAUDE.md
 CLAUDE.local.md
 WARP.md
+**/CLAUDE.md
+**/CLAUDE.local.md
 
 # Additional Electron build artifacts
 *.spec
